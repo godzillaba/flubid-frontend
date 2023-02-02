@@ -1,0 +1,6 @@
+query TestQuery($a: Int) {
+  # this one is coming from uniswap-v2
+  pairs(first: $a) {
+    id
+  }
+}
