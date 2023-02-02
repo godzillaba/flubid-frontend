@@ -15,6 +15,9 @@ import { WagmiConfig, createClient, configureChains, mainnet, goerli } from 'wag
 import { publicProvider } from 'wagmi/providers/public'
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Explore from './pages/Explore';
+import MyAuctions from './pages/MyAuctions';
+import CreateAuction from './pages/CreateAuction';
 
 
 const { chains, provider, webSocketProvider } = configureChains(
@@ -48,11 +51,12 @@ function App() {
   return (
     <WagmiConfig client={client}>
       <ScopedCssBaseline>
-        <TopBar></TopBar>
         <BrowserRouter>
+          <TopBar></TopBar>
           <Routes>
-            <Route path="/" element={<h1>hi</h1>}/>
-            <Route path="/foo" element={<h1>bar</h1>}/>
+            <Route path="/" element={<Explore/>}/>
+            <Route path="/my-auctions" element={<MyAuctions/>}/>
+            <Route path="/create-auction" element={<CreateAuction/>}/>
           </Routes>
         </BrowserRouter>
       </ScopedCssBaseline>
