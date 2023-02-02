@@ -1,24 +1,35 @@
 import React from 'react';
 import { FormControl, MenuItem, Select } from '@material-ui/core';
+import { useNetwork, useSwitchNetwork } from 'wagmi';
 
 export default function NetworkSelect() {
-    const [network, setNetwork] = React.useState("5");
+  const { chain } = useNetwork()
+  const { chains, error, isLoading, pendingChainId, switchNetwork } = useSwitchNetwork()
 
-    const handleChange = (event: any) => {
-        setNetwork(event.target.value);
-    };
+  const [network, setNetwork] = React.useState(chain?.id.toString() || "5");
 
-    return (
-        <FormControl>
-            <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={network}
-                onChange={handleChange}
-            >
-                <MenuItem value={5}>Goerli</MenuItem>
-            </Select>
-        </FormControl>
-    );
+  const handleChange = (event: any) => {
+    if (switchNetwork) switchNetwork(event.target.value);
+    setNetwork(event.target.value);
+  };
+
+  return (
+    <div>
+      <FormControl>
+        <Select
+          labelId="demo-simple-select-label"
+          id="demo-simple-select"
+          value={network}
+          onChange={handleChange}
+        >
+          {
+            chains.map(chainOption => 
+              <MenuItem value={chainOption.id}>{chainOption.name}</MenuItem>
+            )
+          }
+        </Select>
+      </FormControl>
+    </div>
+  );
 
 }

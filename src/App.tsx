@@ -7,7 +7,21 @@ import { AppBar, FormControl, IconButton, InputLabel, MenuItem, Select, Toolbar,
 import '@fontsource/roboto';
 import MenuIcon from "@material-ui/icons/Menu";
 import NetworkSelect from './components/NetworkSelect';
+import TopBar from './components/TopBar';
 
+import { WagmiConfig, createClient, configureChains, mainnet, goerli } from 'wagmi'
+import { publicProvider } from 'wagmi/providers/public'
+
+const { chains, provider, webSocketProvider } = configureChains(
+ [mainnet, goerli],
+ [publicProvider()],
+)
+
+const client = createClient({
+ autoConnect: true,
+ provider,
+ webSocketProvider,
+})
 
 
 function App() {
@@ -27,19 +41,11 @@ function App() {
   const classes = useStyles();
 
   return (
-    <div className={classes.root}>
-      <AppBar position="static">
-        <Toolbar>
-          <div style={{ flexGrow: 1 }}>
-            <Button color="inherit">Explore</Button>
-            <Button color="inherit">My Auctions</Button>
-            <Button color="inherit">Create Auction</Button>
-          </div>
-          <NetworkSelect></NetworkSelect>
-          <Button color="inherit">Connect Wallet</Button>
-        </Toolbar>
-      </AppBar>
-    </div>
+    <WagmiConfig client={client}>
+      <div className={classes.root}>
+        <TopBar></TopBar>
+      </div>
+    </WagmiConfig>
   );
 }
 
