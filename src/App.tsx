@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { makeStyles } from '@material-ui/core/styles';
+import ScopedCssBaseline from '@material-ui/core/ScopedCssBaseline';
+
 
 import Button from '@material-ui/core/Button';
 import { AppBar, FormControl, IconButton, InputLabel, MenuItem, Select, Toolbar, Typography } from '@material-ui/core';
@@ -11,6 +13,9 @@ import TopBar from './components/TopBar';
 
 import { WagmiConfig, createClient, configureChains, mainnet, goerli } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
+
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 
 const { chains, provider, webSocketProvider } = configureChains(
  [mainnet, goerli],
@@ -26,25 +31,31 @@ const client = createClient({
 
 function App() {
 
-  const useStyles = makeStyles((theme) => ({
-    root: {
-      flexGrow: 1,
-    },
-    menuButton: {
-      marginRight: theme.spacing(2),
-    },
-    title: {
-      flexGrow: 1,
-    },
-  }));
+  // const useStyles = makeStyles((theme) => ({
+  //   root: {
+  //     flexGrow: 1,
+  //   },
+  //   menuButton: {
+  //     marginRight: theme.spacing(2),
+  //   },
+  //   title: {
+  //     flexGrow: 1,
+  //   },
+  // }));
 
-  const classes = useStyles();
+  // const classes = useStyles();
 
   return (
     <WagmiConfig client={client}>
-      <div className={classes.root}>
+      <ScopedCssBaseline>
         <TopBar></TopBar>
-      </div>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<h1>hi</h1>}/>
+            <Route path="/foo" element={<h1>bar</h1>}/>
+          </Routes>
+        </BrowserRouter>
+      </ScopedCssBaseline>
     </WagmiConfig>
   );
 }
