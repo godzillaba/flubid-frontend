@@ -14,7 +14,7 @@ import TopBar from './components/TopBar';
 import { WagmiConfig, createClient, configureChains, mainnet, goerli } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, HashRouter } from "react-router-dom";
 import Explore from './pages/Explore';
 import MyAuctions from './pages/MyAuctions';
 import CreateAuction from './pages/CreateAuction';
@@ -51,14 +51,14 @@ function App() {
   return (
     <WagmiConfig client={client}>
       <ScopedCssBaseline>
-        <BrowserRouter>
+        <HashRouter>
           <TopBar></TopBar>
           <Routes>
             <Route path="/" element={<Explore/>}/>
             <Route path="/my-auctions" element={<MyAuctions/>}/>
             <Route path="/create-auction" element={<CreateAuction/>}/>
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </ScopedCssBaseline>
     </WagmiConfig>
   );
