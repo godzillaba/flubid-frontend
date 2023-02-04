@@ -39,7 +39,7 @@ export default function Explore() {
 
   const theme = useTheme();
 
-  if (!data || true) return <PageSpinner/>
+  if (!data) return <PageSpinner/>
 
   return (
     <>
