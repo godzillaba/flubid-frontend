@@ -1,13 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { makeStyles } from '@material-ui/core/styles';
-import ScopedCssBaseline from '@material-ui/core/ScopedCssBaseline';
-
-
-import Button from '@material-ui/core/Button';
-import { AppBar, Container, FormControl, IconButton, InputLabel, MenuItem, Select, Toolbar, Typography } from '@material-ui/core';
 import '@fontsource/roboto';
-import MenuIcon from "@material-ui/icons/Menu";
+
 import NetworkSelect from './components/NetworkSelect';
 import TopBar from './components/TopBar';
 
@@ -18,6 +12,8 @@ import { Routes, Route, HashRouter } from "react-router-dom";
 import Explore from './pages/Explore';
 import MyAuctions from './pages/MyAuctions';
 import CreateAuction from './pages/CreateAuction';
+import Auction from './pages/Auction';
+import { Container, createTheme, CssBaseline, ScopedCssBaseline, ThemeProvider } from '@mui/material';
 
 
 const { chains, provider, webSocketProvider } = configureChains(
@@ -30,6 +26,12 @@ const client = createClient({
  provider,
  webSocketProvider,
 })
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
 
 
 function App() {
@@ -50,7 +52,8 @@ function App() {
 
   return (
     <WagmiConfig client={client}>
-      <ScopedCssBaseline>
+      <ThemeProvider theme={darkTheme}>
+        <CssBaseline/>
         <HashRouter>
           <TopBar></TopBar>
           <Container>
@@ -58,10 +61,11 @@ function App() {
               <Route path="/" element={<Explore/>}/>
               <Route path="/my-auctions" element={<MyAuctions/>}/>
               <Route path="/create-auction" element={<CreateAuction/>}/>
+              <Route path="/auction/:auctionAddress" element={<Auction/>}/>
             </Routes>
           </Container>
         </HashRouter>
-      </ScopedCssBaseline>
+      </ThemeProvider>
     </WagmiConfig>
   );
 }

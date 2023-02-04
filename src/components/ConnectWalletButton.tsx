@@ -1,7 +1,7 @@
 import React from 'react';
-import { Button } from '@material-ui/core';
 import { InjectedConnector } from '@wagmi/core';
 import { useAccount, useConnect } from 'wagmi';
+import { Button } from '@mui/material';
 
 function shortenAddress(address: string): string {
     return address.substring(0, 6) + "..." + address.substring(address.length - 4);

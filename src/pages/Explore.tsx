@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 
-import { Button, Card, CircularProgress, Divider, Grid, TextField } from '@material-ui/core';
-import { useTheme } from '@material-ui/core';
+import { Button, Card, CircularProgress, Divider, Grid, TextField, useTheme } from '@mui/material';
 
 
 import {execute, TestQueryDocument, TestQueryQuery} from "../graph/.graphclient";
+import { useNavigate } from 'react-router-dom';
 
 function AuctionInfoCard() {
   const titleStyle = {
@@ -12,10 +12,11 @@ function AuctionInfoCard() {
   };
 
   const theme = useTheme();
+  const navigate = useNavigate();
 
   return (
-    <Card style={{paddingLeft: theme.spacing(2)}}>
-      <h2 onClick={() => {}} style={titleStyle}>Auction Title</h2>
+    <Card style={{paddingLeft: theme.spacing(2)}} variant="outlined">
+      <h2 onClick={() => navigate('/auction/<insertaddyhere>')} style={titleStyle}>Auction Title</h2>
       <h4>Type: English/Traditional</h4>
       <h4>Active: Yes</h4>
       <h4>Currency: DAI</h4>

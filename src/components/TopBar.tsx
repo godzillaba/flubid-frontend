@@ -1,8 +1,8 @@
-import { AppBar, Button, Toolbar } from '@material-ui/core';
 import React from 'react';
 import ConnectWalletButton from './ConnectWalletButton';
 import NetworkSelect from './NetworkSelect';
 import { useNavigate } from "react-router-dom";
+import { AppBar, Button, Toolbar } from '@mui/material';
 
 
 

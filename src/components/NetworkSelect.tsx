@@ -1,5 +1,5 @@
+import { FormControl, MenuItem, Select } from '@mui/material';
 import React from 'react';
-import { FormControl, MenuItem, Select } from '@material-ui/core';
 import { useAccount, useConnect, useNetwork, useSwitchNetwork } from 'wagmi';
 
 export default function NetworkSelect() {
