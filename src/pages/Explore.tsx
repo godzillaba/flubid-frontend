@@ -5,6 +5,7 @@ import { Button, Card, CircularProgress, Divider, Grid, TextField, useTheme } fr
 
 import {execute, TestQueryDocument, TestQueryQuery} from "../graph/.graphclient";
 import { useNavigate } from 'react-router-dom';
+import PageSpinner from '../components/PageSpinner';
 
 function AuctionInfoCard() {
   const titleStyle = {
@@ -38,7 +39,7 @@ export default function Explore() {
 
   const theme = useTheme();
 
-  if (!data) return <CircularProgress />
+  if (!data || true) return <PageSpinner/>
 
   return (
     <>
