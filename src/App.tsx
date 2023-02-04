@@ -5,7 +5,7 @@ import ScopedCssBaseline from '@material-ui/core/ScopedCssBaseline';
 
 
 import Button from '@material-ui/core/Button';
-import { AppBar, FormControl, IconButton, InputLabel, MenuItem, Select, Toolbar, Typography } from '@material-ui/core';
+import { AppBar, Container, FormControl, IconButton, InputLabel, MenuItem, Select, Toolbar, Typography } from '@material-ui/core';
 import '@fontsource/roboto';
 import MenuIcon from "@material-ui/icons/Menu";
 import NetworkSelect from './components/NetworkSelect';
@@ -53,11 +53,13 @@ function App() {
       <ScopedCssBaseline>
         <HashRouter>
           <TopBar></TopBar>
-          <Routes>
-            <Route path="/" element={<Explore/>}/>
-            <Route path="/my-auctions" element={<MyAuctions/>}/>
-            <Route path="/create-auction" element={<CreateAuction/>}/>
-          </Routes>
+          <Container>
+            <Routes>
+              <Route path="/" element={<Explore/>}/>
+              <Route path="/my-auctions" element={<MyAuctions/>}/>
+              <Route path="/create-auction" element={<CreateAuction/>}/>
+            </Routes>
+          </Container>
         </HashRouter>
       </ScopedCssBaseline>
     </WagmiConfig>
