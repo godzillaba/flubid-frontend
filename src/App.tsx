@@ -56,14 +56,14 @@ function App() {
         <CssBaseline/>
         <HashRouter>
           <TopBar></TopBar>
-          <Container>
+          {/* <Container> */}
             <Routes>
               <Route path="/" element={<Explore/>}/>
               <Route path="/my-auctions" element={<MyAuctions/>}/>
               <Route path="/create-auction" element={<CreateAuction/>}/>
               <Route path="/auction/:auctionAddress" element={<Auction/>}/>
             </Routes>
-          </Container>
+          {/* </Container> */}
         </HashRouter>
       </ThemeProvider>
     </WagmiConfig>
