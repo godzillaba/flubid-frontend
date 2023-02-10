@@ -5,7 +5,8 @@ import '@fontsource/roboto';
 import NetworkSelect from './components/NetworkSelect';
 import TopBar from './components/TopBar';
 
-import { WagmiConfig, createClient, configureChains, mainnet, goerli } from 'wagmi'
+import { WagmiConfig, createClient, configureChains } from 'wagmi'
+import { polygonMumbai } from '@wagmi/core/chains'
 import { publicProvider } from 'wagmi/providers/public'
 
 import { Routes, Route, HashRouter } from "react-router-dom";
@@ -17,7 +18,7 @@ import { Container, createTheme, CssBaseline, ScopedCssBaseline, ThemeProvider }
 
 
 const { chains, provider, webSocketProvider } = configureChains(
- [mainnet, goerli],
+ [polygonMumbai],
  [publicProvider()],
 )
 

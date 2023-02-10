@@ -1,0 +1,16 @@
+query ExploreContinuousRentalAuctions($first: Int, $skip: Int) {
+  # this one is coming from uniswap-v2
+  continuousRentalAuctions(first: $first, skip: $skip) {
+    id
+    controllerObserverImplementation
+    controllerObserver
+    acceptedToken
+    # beneficiary
+    # minimumBidFactorWad
+    # reserveRate
+    inboundStreams(first: 1, orderBy: flowRate, orderDirection: desc) {
+      sender
+      flowRate
+    }
+  }
+}
