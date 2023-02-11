@@ -25,3 +25,5 @@ yarn-error.log*
 
 # custom
 /src/graph/.graphclient
+
+foo.js
