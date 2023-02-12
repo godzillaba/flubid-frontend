@@ -2,6 +2,7 @@ query ExploreContinuousRentalAuctions($first: Int, $skip: Int) {
   # this one is coming from uniswap-v2
   continuousRentalAuctions(first: $first, skip: $skip) {
     id
+    address
     controllerObserverImplementation
     controllerObserver
     acceptedToken
@@ -12,5 +13,17 @@ query ExploreContinuousRentalAuctions($first: Int, $skip: Int) {
       sender
       flowRate
     }
+  }
+}
+
+query ExploreRentalAuctions {
+  rentalAuctions {
+    id
+    type
+    address
+    controllerObserverImplementation
+    controllerObserver
+    acceptedToken
+    topBid
   }
 }

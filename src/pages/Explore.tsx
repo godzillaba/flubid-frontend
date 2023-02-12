@@ -5,7 +5,7 @@ import { Container } from '@mui/system';
 
 import { useNavigate } from 'react-router-dom';
 
-import { execute, ExploreContinuousRentalAuctionsDocument, ExploreContinuousRentalAuctionsQuery } from "../graph/.graphclient";
+import { execute, ExploreRentalAuctionsDocument, ExploreRentalAuctionsQuery } from "../graph/.graphclient";
 import PageSpinner from '../components/PageSpinner';
 
 import { readContracts, useProvider } from 'wagmi';
@@ -23,7 +23,7 @@ import ExploreAuctionInfoCard from '../components/ExploreAuctionItemCard';
 async function getItemsFromRentalAuctionsDocument(data: any) {
   if (!data) return;
   console.log(data)
-  const auctions = data.continuousRentalAuctions.filter((auction: any) => constants.officialControllerImpls.includes(auction.controllerObserverImplementation));
+  const auctions = data.rentalAuctions.filter((auction: any) => constants.officialControllerImpls.includes(auction.controllerObserverImplementation));
 
   const underlyingContractsReqs = auctions.map((auction: any) => {
     return {
@@ -74,8 +74,7 @@ async function getItemsFromRentalAuctionsDocument(data: any) {
       metadata: metadatas[index],
       name: names[index],
       underlyingTokenContract: underlyingContracts[index],
-      underlyingTokenId: Number(underlyingIds[index]),
-      auctionType: "Continuous Rental Auction" // todo: when english are integrated into frontend we have to change some stuff around here
+      underlyingTokenId: Number(underlyingIds[index])
     }
   });
 }
@@ -85,7 +84,7 @@ export default function Explore() {
   const [auctionItems, setAuctionItems] = React.useState([]);
 
   useEffect(() => {
-    execute(ExploreContinuousRentalAuctionsDocument, { first: 12, skip: 0 }).then((result) => {
+    execute(ExploreRentalAuctionsDocument, { first: 12, skip: 0 }).then((result) => {
       getItemsFromRentalAuctionsDocument(result?.data).then(setAuctionItems)
     })
   }, []);

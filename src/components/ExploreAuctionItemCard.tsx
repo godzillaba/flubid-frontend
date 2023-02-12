@@ -65,8 +65,9 @@ function ExploreAuctionInfoCard(props: any) {
     }, []);
 
     const currency = getSymbolOfSuperToken("polygonMumbai", props.auctionItem.acceptedToken);
-    const flowRate = Number(props.auctionItem.inboundStreams[0]?.flowRate || 0) / 1e18;
+    const flowRate = Number(props.auctionItem.topBid || 0) / 1e18;
     const tooltipText = makeFlowTooltipText(flowRate);
+    const auctionType = props.auctionItem.type === 'english' ? 'English Rental Auction' : 'Continuous Rental Auction';
 
     return (
         <Card style={{ padding: theme.spacing(2), cursor: "pointer" }} variant="outlined" onClick={() => navigate('/auction/<addr>')}>
@@ -74,7 +75,7 @@ function ExploreAuctionInfoCard(props: any) {
 
             <p>{props.auctionItem.name}</p>
             <p># {props.auctionItem.underlyingTokenId}</p>
-            <p>{props.auctionItem.auctionType}</p>
+            <p>{auctionType}</p>
             <p>
                 Top Bid: {flowRate} {currency} / sec
                 <Tooltip title={tooltipText}>
