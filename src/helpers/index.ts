@@ -1,4 +1,5 @@
 import base64Lens from "../assets/lensProfile";
+import { ExploreRentalAuctionsQuery } from "../graph/.graphclient";
 
 const lensControllerImpl = "0x11bc64F68fBe2899b581f7DEEf204d49BA445957".toLowerCase();
 const erc4907ControllerImpl = "0xbDb5baeb476AeE7904441039e1F712d7DDD88A56".toLowerCase();
@@ -61,7 +62,7 @@ export function fixIpfsUri(uri: string): string {
     return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
 }
 
-export async function getImageFromAuctionItem(auctionItem: any): Promise<string> {
+export async function getImageFromAuctionItem(auctionItem: GenericRentalAuctionWithMetadata): Promise<string> {
     if (auctionItem.controllerObserverImplementation.toLowerCase() === constants.lensControllerImpl) {
         // HACK
         // use template lens image and replace handle. for some reason profile images returned from lensHub look weird
@@ -75,25 +76,30 @@ export async function getImageFromAuctionItem(auctionItem: any): Promise<string>
     }
 }
 
-export async function getItemsFromRentalAuctionsDocument(rentalAuctions: any) {
-    if (!rentalAuctions) return;
+export type GenericRentalAuctionWithMetadata = ExploreRentalAuctionsQuery["genericRentalAuctions"][0] & {metadata: {[key: string]: any}}
+
+export async function getItemsFromRentalAuctionsDocument(queryResult: ExploreRentalAuctionsQuery | null | undefined): Promise<GenericRentalAuctionWithMetadata[] | null> {
+    if (!queryResult) return null;
+
+    const rentalAuctions = queryResult.genericRentalAuctions;
 
     const auctions = rentalAuctions.filter((auction: any) =>
         constants.officialControllerImpls.includes(auction.controllerObserverImplementation)
     );
 
-    const metadatas = await Promise.all(
-        auctions.map((auction: any) => {
-            const uri = auction.underlyingTokenURI;
-            return fetch(fixIpfsUri(uri))
-                .then((res) => res.json())
-                .catch(() => {
-                    return {};
-                });
+    const metadatas: {[key: string]: string}[] = await Promise.all(
+        auctions.map(async auction => {
+            const uri = auction.controllerObserver.underlyingTokenURI;
+            try {
+                const res = await fetch(fixIpfsUri(uri));
+                return (await res.json()) as {[key: string]: string};
+            } catch {
+                return {};
+            }
         })
     );
 
-    return auctions.map((auction: any, index: any) => {
+    return auctions.map((auction, index) => {
         return {
             ...auction,
             metadata: metadatas[index],

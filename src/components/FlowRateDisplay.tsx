@@ -33,7 +33,9 @@ function makeFlowTooltipText(flowRate: number) {
     </> 
 }
 
-export default function FlowRateDisplay(props: any) {
+type FlowRateDisplayProps = {flowRate: number, currency: string};
+
+export default function FlowRateDisplay(props: FlowRateDisplayProps) {
     const tooltipText = makeFlowTooltipText(props.flowRate);
 
     return (

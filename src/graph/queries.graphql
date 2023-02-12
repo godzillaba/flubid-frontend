@@ -1,51 +1,68 @@
-query ExploreContinuousRentalAuctions($first: Int, $skip: Int) {
-  # this one is coming from uniswap-v2
-  continuousRentalAuctions(first: $first, skip: $skip) {
-    id
-    address
-    controllerObserverImplementation
-    controllerObserver
-    acceptedToken
-    # beneficiary
-    # minimumBidFactorWad
-    # reserveRate
-    inboundStreams(first: 1, orderBy: flowRate, orderDirection: desc) {
-      sender
-      flowRate
-    }
-  }
-}
+# query ExploreContinuousRentalAuctions($first: Int, $skip: Int) {
+#   # this one is coming from uniswap-v2
+#   continuousRentalAuctions(first: $first, skip: $skip) {
+#     id
+#     address
+#     controllerObserverImplementation
+#     controllerObserver
+#     acceptedToken
+#     # beneficiary
+#     # minimumBidFactorWad
+#     # reserveRate
+#     inboundStreams(first: 1, orderBy: flowRate, orderDirection: desc) {
+#       sender
+#       flowRate
+#     }
+#   }
+# }
 
+# todo: we don't need all this info
 query ExploreRentalAuctions {
-  rentalAuctions {
+  genericRentalAuctions {
     acceptedToken
     address
-    controllerObserver
+    beneficiary
+    controllerObserver {
+      address
+      auctionAddress
+      id
+      implementation
+      underlyingTokenContract
+      underlyingTokenID
+      underlyingTokenName
+      underlyingTokenURI
+    }
     controllerObserverImplementation
     currentRenter
     id
-    underlyingTokenURI
-    underlyingTokenName
+    minimumBidFactorWad
+    reserveRate
     topBid
     type
-    underlyingTokenContract
-    underlyingTokenID
   }
 }
 
 query RentalAuctionByAddress($address: Bytes) {
-  rentalAuctions(where: {address: $address}) {
+  genericRentalAuctions(where: {address: $address}) {
     acceptedToken
     address
-    controllerObserver
+    beneficiary
+    controllerObserver {
+      address
+      auctionAddress
+      id
+      implementation
+      underlyingTokenContract
+      underlyingTokenID
+      underlyingTokenName
+      underlyingTokenURI
+    }
     controllerObserverImplementation
     currentRenter
     id
-    underlyingTokenURI
-    underlyingTokenName
+    minimumBidFactorWad
+    reserveRate
     topBid
     type
-    underlyingTokenContract
-    underlyingTokenID
   }
 }

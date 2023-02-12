@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Card, useTheme } from '@mui/material';
-import { constants, fixIpfsUri, getImageFromAuctionItem, getSymbolOfSuperToken, hackLensImage } from '../helpers';
+import { constants, GenericRentalAuctionWithMetadata, fixIpfsUri, getImageFromAuctionItem, getSymbolOfSuperToken, hackLensImage } from '../helpers';
 import FlowRateDisplay from './FlowRateDisplay';
 
+type ExploreAuctionInfoCardProps = {
+    auctionItem: GenericRentalAuctionWithMetadata
+}
 
-function ExploreAuctionInfoCard(props: any) {
+function ExploreAuctionInfoCard(props: ExploreAuctionInfoCardProps) {
     const titleStyle = {
         cursor: "pointer"
     };
@@ -28,8 +31,8 @@ function ExploreAuctionInfoCard(props: any) {
         <Card style={{ padding: theme.spacing(2), cursor: "pointer" }} variant="outlined" onClick={() => navigate('/auction/' + props.auctionItem.address)}>
             <img src={fixIpfsUri(image)} style={{ width: '100%' }} />
 
-            <p>{props.auctionItem.underlyingTokenName}</p>
-            <p># {props.auctionItem.underlyingTokenID}</p>
+            <p>{props.auctionItem.controllerObserver.underlyingTokenName}</p>
+            <p># {props.auctionItem.controllerObserver.underlyingTokenID}</p>
             <p>{auctionType}</p>
             <p>
                 <FlowRateDisplay flowRate={flowRate} currency={currency}/>

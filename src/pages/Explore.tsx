@@ -7,8 +7,9 @@ import { Container } from '@mui/system';
 import { execute, ExploreRentalAuctionsDocument, ExploreRentalAuctionsQuery } from "../graph/.graphclient";
 import PageSpinner from '../components/PageSpinner';
 
-import { constants, fixIpfsUri, getItemsFromRentalAuctionsDocument } from '../helpers';
+import { constants, GenericRentalAuctionWithMetadata, fixIpfsUri, getItemsFromRentalAuctionsDocument } from '../helpers';
 import ExploreAuctionInfoCard from '../components/ExploreAuctionItemCard';
+import { ExecutionResult } from 'graphql';
 
 // async function getItemsFromRentalAuctionsDocument(rentalAuctions: any) {
 //   if (!rentalAuctions) return;
@@ -31,11 +32,14 @@ import ExploreAuctionInfoCard from '../components/ExploreAuctionItemCard';
 
 
 export default function Explore() {
-  const [auctionItems, setAuctionItems] = React.useState([]);
+  
+  const [auctionItems, setAuctionItems]: [GenericRentalAuctionWithMetadata[], any] = React.useState([]);
 
   useEffect(() => {
-    execute(ExploreRentalAuctionsDocument, { first: 12, skip: 0 }).then((result) => {
-      getItemsFromRentalAuctionsDocument(result?.data?.rentalAuctions).then(setAuctionItems)
+    execute(ExploreRentalAuctionsDocument, { first: 12, skip: 0 }).then((result: ExecutionResult<ExploreRentalAuctionsQuery>) => {
+      getItemsFromRentalAuctionsDocument(result?.data).then(items => {
+        if (items) setAuctionItems(items);
+      })
     })
   }, []);
 

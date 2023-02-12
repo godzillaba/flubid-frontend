@@ -7,44 +7,40 @@ import FlowRateInput from "../components/FlowRateInput";
 import base64Lens from "../assets/lensProfile";
 import { execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from "../graph/.graphclient";
 import { ethers } from "ethers";
-import { constants, fixIpfsUri, getImageFromAuctionItem, getItemsFromRentalAuctionsDocument, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
+import { constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, getItemsFromRentalAuctionsDocument, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
 import FlowRateDisplay from "../components/FlowRateDisplay";
+import { ExecutionResult } from "graphql";
 
-
-export default function Auction(props: any) {
+export default function Auction() {
     const urlParams = useParams();
 
     const auctionAddress = urlParams.auctionAddress;
     console.log(auctionAddress)
 
-    // TODO: Fetch auction data from the API
     const theme = useTheme();
     const cardStyle = {
         padding: theme.spacing(2),
     };
 
-    let genericRentalAuction: any, setGenericRentalAuction: any;
-
-    [genericRentalAuction, setGenericRentalAuction] = React.useState();
+    const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata | null>(null);
     const [image, setImage] = React.useState("");
 
     useEffect(() => {
         if (auctionAddress === undefined) return;
-        execute(RentalAuctionByAddressDocument, { address: auctionAddress }).then((result) => {
+        execute(RentalAuctionByAddressDocument, { address: auctionAddress }).then((result: ExecutionResult<RentalAuctionByAddressQuery>) => {
             console.log(result);
-            getItemsFromRentalAuctionsDocument(result.data.rentalAuctions).then(auctions => {
-                console.log(auctions)
+            getItemsFromRentalAuctionsDocument(result.data).then(auctions => {
+                if (!auctions || !auctions[0]) return;
                 setGenericRentalAuction(auctions[0]);
                 getImageFromAuctionItem(auctions[0]).then(setImage);
             });
-            // setGenericRentalAuction(result.data.rentalAuctions[0]);
         });
     }, []);
 
-    if (genericRentalAuction === undefined) {
+    if (!genericRentalAuction) {
         return (<>hi</>);
     }
-    const auctionTypeReadable = constants.auctionTypesReadable[genericRentalAuction.type];
+    const auctionTypeReadable = constants.auctionTypesReadable[genericRentalAuction?.type];
     
     const currencySymbol = getSymbolOfSuperToken("polygonMumbai", genericRentalAuction.acceptedToken);
 
@@ -56,9 +52,9 @@ export default function Auction(props: any) {
                 </Grid>
                 <Grid item xs={6}>
                     <Card variant="outlined" style={cardStyle}>
-                        <h1 style={{ marginTop: 0 }}>{genericRentalAuction.underlyingTokenName} #{genericRentalAuction.underlyingTokenID}</h1>
+                        <h1 style={{ marginTop: 0 }}>{genericRentalAuction.controllerObserver.underlyingTokenName} #{genericRentalAuction.controllerObserver.underlyingTokenID}</h1>
                         <sub>
-                            <a href={makeOpenSeaLink(genericRentalAuction.underlyingTokenContract, genericRentalAuction.underlyingTokenID)}>View on OpenSea</a>
+                            <a href={makeOpenSeaLink(genericRentalAuction.controllerObserver.underlyingTokenContract, genericRentalAuction.controllerObserver.underlyingTokenID)}>View on OpenSea</a>
                         </sub>
                         {/* <h2 style={{ marginTop: 0 }}>Auction Information</h2> */}
                         <p>Currency: {currencySymbol}</p>
