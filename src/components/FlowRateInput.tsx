@@ -1,8 +1,14 @@
 import { CircularProgress, MenuItem, TextField, useTheme } from '@mui/material';
 import { Stack } from '@mui/system';
-import React from 'react';
+import React, { useEffect } from 'react';
 
-export default function FlowRateInput(props: any) {
+type FlowRateInputProps = {
+    onChange?: ((val: number) => any),
+    displayResult?: boolean ,
+    displayCurrency?: string
+}
+
+export default function FlowRateInput(props: FlowRateInputProps) {
     const [numerator, setNumerator] = React.useState(0);
     const [denominator, setDenominator] = React.useState(1);
 
@@ -20,7 +26,10 @@ export default function FlowRateInput(props: any) {
         }
     }
 
-    if (props.onChange) props.onChange(numerator / denominator);
+    useEffect(() => {
+        if (props.onChange) props.onChange(numerator / denominator);
+    }, [numerator, denominator]);
+
 
     return (
         <Stack
