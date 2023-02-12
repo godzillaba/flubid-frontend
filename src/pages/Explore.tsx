@@ -1,83 +1,33 @@
 import React, { useEffect } from 'react';
 
-import { Button, Card, CircularProgress, Divider, Grid, TextField, useTheme } from '@mui/material';
+import { Grid, TextField, useTheme } from '@mui/material';
 import { Container } from '@mui/system';
 
-import { useNavigate } from 'react-router-dom';
 
 import { execute, ExploreRentalAuctionsDocument, ExploreRentalAuctionsQuery } from "../graph/.graphclient";
 import PageSpinner from '../components/PageSpinner';
 
-import { readContracts, useProvider } from 'wagmi';
-import { AbiCoder } from 'ethers/lib/utils.js';
-import { BigNumber, ethers } from 'ethers';
-
-import {Buffer} from "buffer";
-
-import {default as continuousRentalAuctionAbi} from "../abi/ContinuousRentalAuction.json";
-import {default as controllerObserverAbi} from "../abi/IRentalAuctionControllerObserver.json";
-import {default as erc721MetadataAbi} from "../abi/IERC721Metadata.json";
-import { constants, fixIpfsUri } from '../helpers';
+import { constants, fixIpfsUri, getItemsFromRentalAuctionsDocument } from '../helpers';
 import ExploreAuctionInfoCard from '../components/ExploreAuctionItemCard';
 
-async function getItemsFromRentalAuctionsDocument(data: any) {
-  if (!data) return;
-  console.log(data)
-  const auctions = data.rentalAuctions.filter((auction: any) => constants.officialControllerImpls.includes(auction.controllerObserverImplementation));
+// async function getItemsFromRentalAuctionsDocument(rentalAuctions: any) {
+//   if (!rentalAuctions) return;
 
-  const underlyingContractsReqs = auctions.map((auction: any) => {
-    return {
-      address: auction.controllerObserver,
-      abi: controllerObserverAbi.abi,
-      functionName: "underlyingTokenContract"
-    }
-  });
+//   const auctions = rentalAuctions.filter((auction: any) => constants.officialControllerImpls.includes(auction.controllerObserverImplementation));
 
-  const underlyingIdsReqs = auctions.map((auction: any) => {
-    return {
-      address: auction.controllerObserver,
-      abi: controllerObserverAbi.abi,
-      functionName: "underlyingTokenID"
-    }
-  });
+//   const metadatas = await Promise.all(auctions.map((auction:any) => {
+//     const uri = auction.underlyingTokenURI;
+//     return fetch(fixIpfsUri(uri)).then(res => res.json()).catch(() => { return {} });
+//   }));
 
-  const underlyingContracts = await readContracts({contracts: underlyingContractsReqs}) as string[];
-  const underlyingIds = await readContracts({contracts: underlyingIdsReqs}) as string[];
 
-  const tokenURIReqs = underlyingContracts.map((contractAddress: any, index: any) => {
-    return {
-      address: contractAddress,
-      abi: erc721MetadataAbi.abi,
-      functionName: "tokenURI",
-      args: [Number(underlyingIds[index])]
-    }
-  });
-
-  const tokenNameReqs = underlyingContracts.map((contractAddress: any) => {
-    return {
-      address: contractAddress,
-      abi: erc721MetadataAbi.abi,
-      functionName: "name"
-    }
-  });
-
-  const metadataURIs = await readContracts({contracts: tokenURIReqs}) as string[];
-  const metadatas = await Promise.all(metadataURIs.map(uri => {
-    return fetch(fixIpfsUri(uri)).then(res => res.json()).catch(() => { return {} });
-  }));
-
-  const names = await readContracts({contracts: tokenNameReqs}) as string[];
-
-  return auctions.map((auction: any, index: any) => {
-    return {
-      ...auction,
-      metadata: metadatas[index],
-      name: names[index],
-      underlyingTokenContract: underlyingContracts[index],
-      underlyingTokenId: Number(underlyingIds[index])
-    }
-  });
-}
+//   return auctions.map((auction: any, index: any) => {
+//     return {
+//       ...auction,
+//       metadata: metadatas[index]
+//     }
+//   });
+// }
 
 
 export default function Explore() {
@@ -85,7 +35,7 @@ export default function Explore() {
 
   useEffect(() => {
     execute(ExploreRentalAuctionsDocument, { first: 12, skip: 0 }).then((result) => {
-      getItemsFromRentalAuctionsDocument(result?.data).then(setAuctionItems)
+      getItemsFromRentalAuctionsDocument(result?.data?.rentalAuctions).then(setAuctionItems)
     })
   }, []);
 

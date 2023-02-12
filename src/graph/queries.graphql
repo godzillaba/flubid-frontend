@@ -18,12 +18,34 @@ query ExploreContinuousRentalAuctions($first: Int, $skip: Int) {
 
 query ExploreRentalAuctions {
   rentalAuctions {
-    id
-    type
-    address
-    controllerObserverImplementation
-    controllerObserver
     acceptedToken
+    address
+    controllerObserver
+    controllerObserverImplementation
+    currentRenter
+    id
+    underlyingTokenURI
+    underlyingTokenName
     topBid
+    type
+    underlyingTokenContract
+    underlyingTokenID
+  }
+}
+
+query RentalAuctionByAddress($address: Bytes) {
+  rentalAuctions(where: {address: $address}) {
+    acceptedToken
+    address
+    controllerObserver
+    controllerObserverImplementation
+    currentRenter
+    id
+    underlyingTokenURI
+    underlyingTokenName
+    topBid
+    type
+    underlyingTokenContract
+    underlyingTokenID
   }
 }
