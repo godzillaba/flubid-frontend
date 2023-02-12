@@ -53,11 +53,11 @@ function makeBidRanges(bids: number[], bidFactor: number): Range[] {
     const ranges: Range[] = [];
 
     // anything up to minimum bid is valid, make lower bids[0]/bidFactor just so there is some area in the UI
-    // ranges.push({
-    //     lower: bids[0] / bidFactor,
-    //     upper: bids[0],
-    //     valid: true
-    // });
+    ranges.push({
+        lower: bids[0] / bidFactor,
+        upper: bids[0],
+        valid: true
+    });
 
     for (let i = 0; i < bids.length; i++) {
         // invalid within bidFactor above any bid
@@ -81,11 +81,11 @@ function makeBidRanges(bids: number[], bidFactor: number): Range[] {
     }
 
     // anything above max bid * bidFactor is valid
-    // ranges.push({
-    //     lower: bids[bids.length - 1] * bidFactor,
-    //     upper: bids[bids.length - 1] * bidFactor * bidFactor,
-    //     valid: true
-    // });
+    ranges.push({
+        lower: bids[bids.length - 1] * bidFactor,
+        upper: bids[bids.length - 1] * bidFactor * bidFactor,
+        valid: true
+    });
 
     return ranges;
 }
@@ -99,21 +99,21 @@ function makeProgressElementsFromRanges(ranges: Range[]) {
 
     const elements = [];
 
-    elements.push(
-        <LinearProgress key={-1} variant='determinate' value={100} style={{width: "5%"}} color="success"/>
-    );
+    // elements.push(
+    //     <LinearProgress key={-1} variant='determinate' value={100} style={{width: "5%"}} color="success"/>
+    // );
 
     for (let i = 0; i < ranges.length; i++) {
-        const width = (ranges[i].upper - ranges[i].lower) / totalRange * 90;
+        const width = (ranges[i].upper - ranges[i].lower) / totalRange * 100;
 
         elements.push((
             <LinearProgress key={i} variant='determinate' value={100} style={{width: width + "%"}} color={ranges[i].valid ? "success" : "error"}/>
         ))
     }
 
-    elements.push(
-        <LinearProgress key={elements.length} variant='determinate' value={100} style={{width: "5%"}} color="success"/>
-    );
+    // elements.push(
+    //     <LinearProgress key={elements.length} variant='determinate' value={100} style={{width: "5%"}} color="success"/>
+    // );
 
     return elements;
 }

@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import FlowRateInput from "../components/FlowRateInput";
 
 import base64Lens from "../assets/lensProfile";
-import { execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from "../graph/.graphclient";
+import { ContinuousRentalAuctionByAddressDocument, ContinuousRentalAuctionByAddressQuery, execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from "../graph/.graphclient";
 import { ethers } from "ethers";
 import { constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, getItemsFromRentalAuctionsDocument, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
 import FlowRateDisplay from "../components/FlowRateDisplay";
@@ -26,16 +26,30 @@ export default function Auction() {
     };
 
     const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata | null>(null);
+    const [continuousRentalAuction, setContinuousRentalAuction] = React.useState<ContinuousRentalAuctionByAddressQuery["continuousRentalAuctions"][0] | null>(null);
+    // todo english
+
     const [image, setImage] = React.useState("");
 
     useEffect(() => {
         if (auctionAddress === undefined) return;
+
         execute(RentalAuctionByAddressDocument, { address: auctionAddress }).then((result: ExecutionResult<RentalAuctionByAddressQuery>) => {
-            console.log(result);
             getItemsFromRentalAuctionsDocument(result.data).then(auctions => {
                 if (!auctions || !auctions[0]) return;
-                setGenericRentalAuction(auctions[0]);
-                getImageFromAuctionItem(auctions[0]).then(setImage);
+                const genericRentalAuction = auctions[0];
+                setGenericRentalAuction(genericRentalAuction);
+                getImageFromAuctionItem(genericRentalAuction).then(setImage);
+
+                if (genericRentalAuction.type === 'continuous') {
+                    execute(ContinuousRentalAuctionByAddressDocument, { address: auctionAddress }).then((result: ExecutionResult<ContinuousRentalAuctionByAddressQuery>) => {
+                        if (!result || !result.data) return;
+                        setContinuousRentalAuction(result.data.continuousRentalAuctions[0]);
+                    })
+                }
+                else if (genericRentalAuction.type === 'english') {
+                    // todo
+                }
             });
         });
     }, []);
@@ -48,7 +62,6 @@ export default function Auction() {
     const auctionTypeReadable = constants.auctionTypesReadable[genericRentalAuction?.type];
     
     const currencySymbol = getSymbolOfSuperToken("polygonMumbai", genericRentalAuction.acceptedToken);
-
 
     return (
         <Container style={{ marginTop: theme.spacing(2) }}>
@@ -71,7 +84,6 @@ export default function Auction() {
                         <p><FlowRateDisplay flowRate={genericRentalAuction.topBid / 1e18} currency={currencySymbol}/></p>
                         <p>Current Renter: {genericRentalAuction.currentRenter}</p>
 
-
                         {/* <p>Bidding End Time: {new Date().toLocaleString()} (3 hours)</p>
 
                         <p>Minimum Rental Time: 1 day</p>
@@ -93,9 +105,12 @@ export default function Auction() {
                         </ul> */}
                     </Card>
                 </Grid>
-                <Grid item xs={12}>
-                    <BidBar bids={[250, 100, 150, 175, 200]} currentBid={userFlowRate}/>
-                </Grid>
+                {
+                    !continuousRentalAuction ? null :
+                    <Grid item xs={12}>
+                        <BidBar bids={continuousRentalAuction.inboundStreams.map(s => Number(s.flowRate))} currentBid={userFlowRate * 1e18}/>
+                    </Grid>
+                }
                 <Grid item xs={12}>
                     <Card variant="outlined" style={cardStyle}>
                         <h2 style={{ marginTop: 0 }}>Place Bid</h2>

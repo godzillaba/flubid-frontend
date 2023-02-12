@@ -64,5 +64,19 @@ query RentalAuctionByAddress($address: Bytes) {
     reserveRate
     topBid
     type
+    # paused
+  }
+}
+
+query ContinuousRentalAuctionByAddress($address: Bytes) {
+  continuousRentalAuctions(where: {address: $address}) {
+    id
+    address
+    inboundStreams {
+      id
+      sender
+      receiver
+      flowRate
+    }
   }
 }
