@@ -5,8 +5,9 @@ import '@fontsource/roboto';
 import NetworkSelect from './components/NetworkSelect';
 import TopBar from './components/TopBar';
 
-import { WagmiConfig, createClient, configureChains } from 'wagmi'
-import { polygonMumbai } from '@wagmi/core/chains'
+import { WagmiConfig, createClient, configureChains, useAccount, useNetwork } from 'wagmi'
+import { polygonMumbai } from 'wagmi/chains'
+
 import { publicProvider } from 'wagmi/providers/public'
 
 import { Routes, Route, HashRouter } from "react-router-dom";
@@ -17,15 +18,15 @@ import Auction from './pages/Auction';
 import { Container, createTheme, CssBaseline, ScopedCssBaseline, ThemeProvider } from '@mui/material';
 
 
-const { chains, provider, webSocketProvider } = configureChains(
- [polygonMumbai],
- [publicProvider()],
+const { provider, webSocketProvider } = configureChains(
+  [polygonMumbai],
+  [publicProvider()],
 )
 
 const client = createClient({
- autoConnect: true,
- provider,
- webSocketProvider,
+  autoConnect: true,
+  provider,
+  webSocketProvider,
 })
 
 const darkTheme = createTheme({
@@ -51,20 +52,25 @@ function App() {
 
   // const classes = useStyles();
 
+  const { isConnected } = useAccount();
+  const { chain, chains } = useNetwork();
+
   return (
     <WagmiConfig client={client}>
       <ThemeProvider theme={darkTheme}>
         <CssBaseline/>
         <HashRouter>
           <TopBar></TopBar>
-          {/* <Container> */}
-            <Routes>
-              <Route path="/" element={<Explore/>}/>
-              <Route path="/my-auctions" element={<MyAuctions/>}/>
-              <Route path="/create-auction" element={<CreateAuction/>}/>
-              <Route path="/auction/:auctionAddress" element={<Auction/>}/>
-            </Routes>
-          {/* </Container> */}
+          {
+            isConnected && chain?.id == polygonMumbai.id ?  // todo multichain
+              <Routes>
+                <Route path="/" element={<Explore/>}/>
+                <Route path="/my-auctions" element={<MyAuctions/>}/>
+                <Route path="/create-auction" element={<CreateAuction/>}/>
+                <Route path="/auction/:auctionAddress" element={<Auction/>}/>
+              </Routes>
+            : null
+          }
         </HashRouter>
       </ThemeProvider>
     </WagmiConfig>

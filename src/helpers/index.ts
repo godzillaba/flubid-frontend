@@ -17,6 +17,7 @@ export const constants = {
     lensControllerImpl: lensControllerImpl,
     erc4907ControllerImpl: erc4907ControllerImpl,
     officialControllerImpls: [lensControllerImpl, erc4907ControllerImpl],
+    zeroAddress: "0x0000000000000000000000000000000000000000",
     superTokens: {
         polygonMumbai: [
             {
