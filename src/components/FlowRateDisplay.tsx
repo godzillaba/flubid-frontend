@@ -40,7 +40,7 @@ export default function FlowRateDisplay(props: FlowRateDisplayProps) {
 
     return (
         <>
-            Top Bid: {props.flowRate} {props.currency} / sec
+            {props.flowRate} {props.currency} / sec
             <Tooltip title={tooltipText}>
                 <IconButton>
                     <InfoOutlinedIcon />
