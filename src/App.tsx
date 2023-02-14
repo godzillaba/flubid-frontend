@@ -16,6 +16,7 @@ import MyAuctions from './pages/MyAuctions';
 import CreateAuction from './pages/CreateAuction';
 import Auction from './pages/Auction';
 import { Container, createTheme, CssBaseline, ScopedCssBaseline, ThemeProvider } from '@mui/material';
+import TransactionAlert from './components/TransactionAlert';
 
 
 const { provider, webSocketProvider } = configureChains(
@@ -61,6 +62,7 @@ function App() {
         <CssBaseline/>
         <HashRouter>
           <TopBar></TopBar>
+          {/* <TransactionAlert show={true} type='pending'/> */}
           {
             isConnected && chain?.id == polygonMumbai.id ?  // todo multichain
               <Routes>

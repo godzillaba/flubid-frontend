@@ -7,7 +7,7 @@ import FlowRateInput from "../components/FlowRateInput";
 import base64Lens from "../assets/lensProfile";
 import { ContinuousRentalAuctionByAddressDocument, ContinuousRentalAuctionByAddressQuery, execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from "../graph/.graphclient";
 import { BigNumber, ethers, Signer } from "ethers";
-import { constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, getItemsFromRentalAuctionsDocument, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
+import { constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, getItemsFromRentalAuctionsDocument, getSymbolOfSuperToken, makeOpenSeaLink, waitForGraphSync } from "../helpers";
 import FlowRateDisplay from "../components/FlowRateDisplay";
 import { ExecutionResult } from "graphql";
 import { purple, red } from '@mui/material/colors';
@@ -22,7 +22,6 @@ export default function Auction() {
     const urlParams = useParams();
 
     const auctionAddress = urlParams.auctionAddress;
-    console.log(auctionAddress)
 
     const theme = useTheme();
     const cardStyle = {
@@ -34,6 +33,8 @@ export default function Auction() {
     const { data: signer, isError, isLoading } = useSigner();
     const provider = useProvider();
 
+    const [refetchCounter, setRefetchCounter] = React.useState(0);
+
     const [userFlowRate, setUserFlowRate] = React.useState<number>(0);
     const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata | null>(null);
     const [continuousRentalAuction, setContinuousRentalAuction] = React.useState<ContinuousRentalAuctionByAddressQuery["continuousRentalAuctions"][0] | null>(null);
@@ -44,6 +45,10 @@ export default function Auction() {
     const [superTokenBalance, setSuperTokenBalance] = React.useState<BigNumber>(BigNumber.from(0));
     const [underlyingTokenBalance, setUnderlyingTokenBalance] = React.useState<BigNumber>(BigNumber.from(0));
     const [image, setImage] = React.useState("");
+
+    function refetch() {
+        setRefetchCounter(refetchCounter + 1);
+    }
 
     const fetchAuctionDataAndLoadSuperfluid = React.useCallback(async () => {
         if (!auctionAddress) return;
@@ -77,7 +82,7 @@ export default function Auction() {
         catch (e) {
             console.error(e);
         }
-    }, [auctionAddress, chain?.id]); // todo chain change
+    }, [auctionAddress, chain?.id, refetchCounter]); // todo chain change
 
     const fetchTokenBalancesAndSymbols = React.useCallback(async () => {
         if (!superToken || !address || !chain) return;
@@ -97,7 +102,7 @@ export default function Auction() {
         catch (e) {
             console.error(e);
         }
-    }, [address, superToken == null, chain?.id]);
+    }, [address, superToken == null, chain?.id, refetchCounter]);
 
     React.useEffect(() => {
         fetchAuctionDataAndLoadSuperfluid();
@@ -107,26 +112,30 @@ export default function Auction() {
         fetchTokenBalancesAndSymbols();
     }, [fetchTokenBalancesAndSymbols]);
 
-    function bid() {
+    async function bid() {
         // todo english, assume continuous for now
-
-        const flowOp = superToken?.createFlow({
+        if (!superToken) throw new Error("superToken undefined");
+        const flowOp = superToken.createFlow({
             sender: address,
             receiver: genericRentalAuction?.address,
             flowRate: Math.round(userFlowRate * 1e18) + "",
             userData: new AbiCoder().encode(["address", "bytes"], [constants.zeroAddress, []]) // todo: not zero address always
         });
 
-        return flowOp?.exec(signer as Signer);
+        const tx = await (await flowOp.exec(signer as Signer)).wait();
+        await waitForGraphSync(tx.blockNumber);
+        refetch();
     }
 
-    function cancelBid() {
-        const flowOp = superToken?.deleteFlow({
+    async function cancelBid() {
+        if (!superToken) throw new Error("superToken undefined");
+        const flowOp = superToken.deleteFlow({
             sender: address as string,
             receiver: genericRentalAuction?.address
         });
-
-        return flowOp?.exec(signer as Signer);
+        const tx = await (await flowOp.exec(signer as Signer)).wait();
+        await waitForGraphSync(tx.blockNumber);
+        refetch();
     }
 
     

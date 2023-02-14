@@ -80,3 +80,11 @@ query ContinuousRentalAuctionByAddress($address: Bytes) {
     }
   }
 }
+
+query BlockNumber {
+  _meta {
+    block {
+      number
+    }
+  }
+}

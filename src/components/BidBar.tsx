@@ -48,7 +48,6 @@ type Range = {
 function makeBidRanges(bids: number[], bidFactor: number): Range[] {
     // sort
     bids.sort();
-    console.log(bids);
 
     const ranges: Range[] = [];
 
@@ -92,7 +91,6 @@ function makeBidRanges(bids: number[], bidFactor: number): Range[] {
 
 function makeProgressElementsFromRanges(ranges: Range[]) {
     if (ranges.length === 0) return <></>;
-    console.log(ranges)
     const min = ranges[0].lower;
     const max = ranges[ranges.length - 1].upper;
     const totalRange = max - min;
@@ -125,7 +123,7 @@ export default function BidBar(props: BidBarProps) {
 
     useEffect(() => {
         setRanges(makeBidRanges(props.bids, 1.05))
-    }, []);
+    }, [props.bids]);
 
     if (ranges.length === 0) return <></>;
 

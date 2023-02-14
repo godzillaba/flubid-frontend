@@ -1,5 +1,6 @@
+import { ExecutionResult } from "graphql";
 import base64Lens from "../assets/lensProfile";
-import { ExploreRentalAuctionsQuery } from "../graph/.graphclient";
+import { BlockNumberDocument, BlockNumberQuery, execute, ExploreRentalAuctionsQuery } from "../graph/.graphclient";
 
 const lensControllerImpl = "0x11bc64F68fBe2899b581f7DEEf204d49BA445957".toLowerCase();
 const erc4907ControllerImpl = "0xbDb5baeb476AeE7904441039e1F712d7DDD88A56".toLowerCase();
@@ -18,6 +19,7 @@ export const constants = {
     erc4907ControllerImpl: erc4907ControllerImpl,
     officialControllerImpls: [lensControllerImpl, erc4907ControllerImpl],
     zeroAddress: "0x0000000000000000000000000000000000000000",
+    graphPollingInterval: 2000,
     superTokens: {
         polygonMumbai: [
             {
@@ -112,4 +114,18 @@ export async function getItemsFromRentalAuctionsDocument(queryResult: ExploreRen
 export function makeOpenSeaLink(address: string, tokenId: number) {
     // todo other networks
     return `https://testnets.opensea.io/assets/mumbai/${address}/${tokenId}`;
+}
+
+export function waitForGraphSync(minBlock: number) {
+    return new Promise<void>((resolve, reject) => {
+        async function check() {
+            const rentalAuctionResult: ExecutionResult<BlockNumberQuery> = await execute(BlockNumberDocument, {});
+            if (rentalAuctionResult.data?._meta?.block.number && rentalAuctionResult.data?._meta?.block.number >= minBlock) {
+                clearInterval(interval);
+                resolve();
+            }
+        }
+        const interval = setInterval(check, constants.graphPollingInterval);
+        check();
+    });
 }
