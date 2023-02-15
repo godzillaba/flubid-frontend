@@ -39,6 +39,7 @@ query ExploreRentalAuctions {
     reserveRate
     topBid
     type
+    paused
   }
 }
 
@@ -64,7 +65,7 @@ query RentalAuctionByAddress($address: Bytes) {
     reserveRate
     topBid
     type
-    # paused
+    paused
   }
 }
 

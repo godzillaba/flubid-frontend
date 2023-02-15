@@ -62,7 +62,7 @@ function makeBidRanges(bids: number[], bidFactor: number): Range[] {
         // invalid within bidFactor above any bid
         ranges.push({
             lower: bids[i],
-            upper: bids[i] * bidFactor,
+            upper: i < bids.length - 1 ? Math.min(bids[i] * bidFactor, bids[i+1]) : bids[i] * bidFactor,
             valid: false
         });
 

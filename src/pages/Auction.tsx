@@ -17,6 +17,20 @@ import * as ContinuousRentalAuctionABI from "../abi/ContinuousRentalAuction.json
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { useAccount, useNetwork, useProvider, useSigner } from 'wagmi'
 import TransactionAlert from "../components/TransactionAlert";
+import PlaceBid from "../components/PlaceBid";
+import PageSpinner from "../components/PageSpinner";
+
+type ContinuousRentalAuction = ContinuousRentalAuctionByAddressQuery["continuousRentalAuctions"][0];
+
+function findBidderAbove(bids: ContinuousRentalAuction["inboundStreams"], bidAmount: BigNumber, ignoreSender: string): string {
+    const sortedBids = bids.sort((a, b) => BigNumber.from(a.flowRate).sub(BigNumber.from(b.flowRate)).lt(0) ? -1 : 1);
+    
+    const foundBid = sortedBids.find(bid => BigNumber.from(bid.flowRate).gte(BigNumber.from(bidAmount)) && bid.sender != ignoreSender);
+    console.log(foundBid?.sender || constants.zeroAddress)
+    
+    return foundBid?.sender || constants.zeroAddress;
+  }
+  
 
 export default function Auction() {
     const urlParams = useParams();
@@ -112,36 +126,39 @@ export default function Auction() {
         fetchTokenBalancesAndSymbols();
     }, [fetchTokenBalancesAndSymbols]);
 
-    async function bid() {
-        // todo english, assume continuous for now
-        if (!superToken) throw new Error("superToken undefined");
-        const flowOp = superToken.createFlow({
-            sender: address,
-            receiver: genericRentalAuction?.address,
-            flowRate: Math.round(userFlowRate * 1e18) + "",
-            userData: new AbiCoder().encode(["address", "bytes"], [constants.zeroAddress, []]) // todo: not zero address always
-        });
-
+    async function createUpdateOrDeleteBid(kind: 'create' | 'update' | 'delete') {
+        if (!superToken || !continuousRentalAuction || !address) throw new Error("stuff is undefined");
+        
+        let flowOp;
+        if (kind === 'delete') {
+            flowOp = superToken.deleteFlow({
+                sender: address as string,
+                receiver: genericRentalAuction?.address
+            });
+        }
+        else {
+            const flowRate = BigNumber.from(Math.round(userFlowRate * 1e18) + "");
+            const higherBidder = findBidderAbove(continuousRentalAuction.inboundStreams, flowRate, address);
+            const flowOpParams = {
+                sender: address as string,
+                receiver: genericRentalAuction?.address,
+                flowRate: Math.round(userFlowRate * 1e18) + "",
+                userData: new AbiCoder().encode(["address", "bytes"], [higherBidder, []]) // todo: not zero address always
+            };
+            if (kind === 'create') {
+                flowOp = superToken.createFlow(flowOpParams);
+            }
+            else {
+                flowOp = superToken.updateFlow(flowOpParams);
+            }
+        }
         const tx = await (await flowOp.exec(signer as Signer)).wait();
         await waitForGraphSync(tx.blockNumber);
         refetch();
     }
-
-    async function cancelBid() {
-        if (!superToken) throw new Error("superToken undefined");
-        const flowOp = superToken.deleteFlow({
-            sender: address as string,
-            receiver: genericRentalAuction?.address
-        });
-        const tx = await (await flowOp.exec(signer as Signer)).wait();
-        await waitForGraphSync(tx.blockNumber);
-        refetch();
-    }
-
-    
     
     if (!genericRentalAuction || !superfluid) {
-        return (<>hi</>);
+        return (<PageSpinner/>);
     }
 
     const auctionTypeReadable = constants.auctionTypesReadable[genericRentalAuction?.type];
@@ -150,7 +167,7 @@ export default function Auction() {
 
     const myContinuousBid = continuousRentalAuction?.inboundStreams.find(x => ethers.utils.getAddress(x.sender) === address);
     const positionInBidQueue = continuousRentalAuction?.inboundStreams.sort((a, b) => b.flowRate - a.flowRate).map(x => x.sender).indexOf(address?.toLowerCase());
-
+    
     return (
         <Container style={{ marginTop: theme.spacing(2) }}>
             {/* <TransactionAlert show={true} type='pending'/> */}
@@ -168,7 +185,7 @@ export default function Auction() {
                         <p>Currency: {superTokenSymbol}</p>
                         <p>Auction Type: {auctionTypeReadable}</p>
 
-                        <p>Current Phase: TODO (Bidding, Renting, Paused)</p>
+                        <p>Paused: {genericRentalAuction.paused ? "Yes" : "No"} TODO: paused events</p>
 
                         <p>Top Bid: <FlowRateDisplay flowRate={genericRentalAuction.topBid / 1e18} currency={superTokenSymbol}/></p>
                         <p>Current Renter: {currentRenter === address ? "YOU" : currentRenter}</p>
@@ -188,22 +205,21 @@ export default function Auction() {
                             <h2 style={{marginTop: 0}}>Your Bid</h2>
                             <p><FlowRateDisplay flowRate={myContinuousBid.flowRate / 1e18} currency={superTokenSymbol}/></p>
                             {positionInBidQueue != undefined ? <p>Position in bid queue: {positionInBidQueue + 1}</p> : null}
-                            <Button fullWidth variant="outlined" color="error" onClick={cancelBid}>Cancel Bid</Button>
+                            <Button fullWidth variant="outlined" color="error" onClick={() => {createUpdateOrDeleteBid('delete')}}>Cancel Bid</Button>
                         </Card>
                     </Grid>
                 }
-                <Grid item xs={myContinuousBid ? 6 : 12}>
-                    <Card variant="outlined" style={cardStyle}>
-                        <h2 style={{ marginTop: 0 }}>Place Bid</h2>
-                        <p>{underlyingTokenSymbol} Balance: {parseInt(underlyingTokenBalance.toString())/1e18}</p>
-                        <p>{superTokenSymbol} Balance: {parseInt(superTokenBalance.toString())/1e18}</p>
-                        <FlowRateInput displayCurrency="DAI" onChange={setUserFlowRate}/>
-                        <br />
-                        <Button fullWidth variant="outlined" color="success" onClick={bid}>
-                            Bid
-                        </Button>
-                    </Card>
-                </Grid>
+
+                <PlaceBid config={{
+                    type: myContinuousBid ? 'update' : 'create',
+                    gridWidth: myContinuousBid ? 6 : 12,
+                    underlyingTokenSymbol,
+                    underlyingTokenBalance,
+                    superTokenSymbol,
+                    superTokenBalance,
+                    onUserFlowRateChange: setUserFlowRate,
+                    onBidClick: myContinuousBid ? () => {createUpdateOrDeleteBid('update')} : () => {createUpdateOrDeleteBid('create')}
+                }}/>
             </Grid>
         </Container>
     );
