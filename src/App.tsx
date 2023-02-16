@@ -17,11 +17,16 @@ import CreateAuction from './pages/CreateAuction';
 import Auction from './pages/Auction';
 import { Container, createTheme, CssBaseline, ScopedCssBaseline, ThemeProvider } from '@mui/material';
 import TransactionAlert from './components/TransactionAlert';
+import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 
 
 const { provider, webSocketProvider } = configureChains(
   [polygonMumbai],
-  [publicProvider()],
+  [jsonRpcProvider({
+    rpc: (chain) => ({
+      http: `https://endpoints.omniatech.io/v1/matic/mumbai/public`,
+    }),
+  })],
 )
 
 const client = createClient({

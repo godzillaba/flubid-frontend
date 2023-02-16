@@ -185,7 +185,7 @@ export default function Auction() {
                         <p>Currency: {superTokenSymbol}</p>
                         <p>Auction Type: {auctionTypeReadable}</p>
 
-                        <p>Paused: {genericRentalAuction.paused ? "Yes" : "No"} TODO: paused events</p>
+                        <p>Paused: {genericRentalAuction.paused ? "Yes" : "No"}</p>
 
                         <p>Top Bid: <FlowRateDisplay flowRate={genericRentalAuction.topBid / 1e18} currency={superTokenSymbol}/></p>
                         <p>Current Renter: {currentRenter === address ? "YOU" : currentRenter}</p>
@@ -193,7 +193,7 @@ export default function Auction() {
                     </Card>
                 </Grid>
                 {
-                    !continuousRentalAuction || genericRentalAuction.topBid == 0 ? null :
+                    !continuousRentalAuction || genericRentalAuction.topBid == 0 || genericRentalAuction.paused ? null :
                     <Grid item xs={12}>
                         <BidBar bids={continuousRentalAuction.inboundStreams.map(s => Number(s.flowRate))} currentBid={userFlowRate * 1e18}/>
                     </Grid>

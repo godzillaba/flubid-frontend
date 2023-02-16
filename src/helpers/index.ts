@@ -2,8 +2,8 @@ import { ExecutionResult } from "graphql";
 import base64Lens from "../assets/lensProfile";
 import { BlockNumberDocument, BlockNumberQuery, execute, ExploreRentalAuctionsQuery } from "../graph/.graphclient";
 
-const lensControllerImpl = "0x11bc64F68fBe2899b581f7DEEf204d49BA445957".toLowerCase();
-const erc4907ControllerImpl = "0xbDb5baeb476AeE7904441039e1F712d7DDD88A56".toLowerCase();
+const lensControllerImpl = "0xDBD4f875638fa3E8889D3d431E4bef464c27D7A3".toLowerCase();
+const erc4907ControllerImpl = "0x786f9d6Cd7B63b7d69fB716E3b16eb9e54E6AE4D".toLowerCase();
 const auctionTypesReadable: {[key: string]: string} = {
     "continuous": "Continuous Rental Auction",
     "english": "English Rental Auction"
