@@ -17,6 +17,7 @@ type Network = "polygonMumbai";
 export const constants = {
     lensControllerImpl: lensControllerImpl,
     erc4907ControllerImpl: erc4907ControllerImpl,
+    continuousRentalAuctionFactory: '0x862E55E8ab6CD3cf914Cd889e22C142BD7faD15f',
     officialControllerImpls: [lensControllerImpl, erc4907ControllerImpl],
     zeroAddress: "0x0000000000000000000000000000000000000000",
     graphPollingInterval: 2000,
@@ -52,6 +53,17 @@ export function getSymbolOfSuperToken(network: Network, address: string): string
 
     return "";
 }
+
+export function getSuperTokenAddressFromSymbol(network: Network, symbol: string) {
+    // todo multichain
+    for (let i = 0; i < constants.superTokens[network].length; i++) {
+      if (constants.superTokens[network][i].symbol === symbol) {
+        return constants.superTokens[network][i].address;
+      }
+    }
+
+    throw new Error("invalid supertoken symbol");
+  }
 
 export async function hackLensImage(newHandle: string) {
     const svgText = await fetch(base64Lens).then((x) => x.text());
