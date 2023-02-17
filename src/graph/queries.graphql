@@ -31,6 +31,7 @@ query ExploreRentalAuctions {
       underlyingTokenID
       underlyingTokenName
       underlyingTokenURI
+      owner
     }
     controllerObserverImplementation
     currentRenter
@@ -57,6 +58,7 @@ query RentalAuctionByAddress($address: Bytes) {
       underlyingTokenID
       underlyingTokenName
       underlyingTokenURI
+      owner
     }
     controllerObserverImplementation
     currentRenter

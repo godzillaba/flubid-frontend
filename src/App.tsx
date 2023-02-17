@@ -18,6 +18,7 @@ import Auction from './pages/Auction';
 import { Container, createTheme, CssBaseline, ScopedCssBaseline, ThemeProvider } from '@mui/material';
 import TransactionAlert from './components/TransactionAlert';
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
+import ManageAuction from './pages/ManageAuction';
 
 
 const { provider, webSocketProvider } = configureChains(
@@ -74,6 +75,7 @@ function App() {
                 <Route path="/" element={<Explore/>}/>
                 <Route path="/my-auctions" element={<MyAuctions/>}/>
                 <Route path="/create-auction" element={<CreateAuction/>}/>
+                <Route path="/manage-auction/:auctionAddress" element={<ManageAuction/>}/>
                 <Route path="/auction/:auctionAddress" element={<Auction/>}/>
               </Routes>
             : null

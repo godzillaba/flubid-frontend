@@ -1,7 +1,7 @@
 import { Alert, Button, Card, Chip, Container, Grid, LinearProgress, MenuItem, Select, Stack, TextField, useTheme } from "@mui/material";
 import { AbiCoder, parseEther } from "ethers/lib/utils.js";
 import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import FlowRateInput from "../components/FlowRateInput";
 
 import base64Lens from "../assets/lensProfile";
@@ -33,14 +33,14 @@ function findBidderAbove(bids: ContinuousRentalAuction["inboundStreams"], bidAmo
   
 
 export default function Auction() {
-    const urlParams = useParams();
-
-    const auctionAddress = urlParams.auctionAddress;
+    const { auctionAddress } = useParams();
 
     const theme = useTheme();
     const cardStyle = {
         padding: theme.spacing(2),
     };
+
+    const navigate = useNavigate();
 
     const { chain, chains } = useNetwork();
     const { address } = useAccount();
@@ -65,14 +65,19 @@ export default function Auction() {
     }
 
     const fetchAuctionDataAndLoadSuperfluid = React.useCallback(async () => {
-        if (!auctionAddress) return;
+        if (!auctionAddress || !address) return;
     
         try {
             const rentalAuctionResult = await execute(RentalAuctionByAddressDocument, { address: auctionAddress });
             const auctions = await getItemsFromRentalAuctionsDocument(rentalAuctionResult.data);
             if (!auctions || !auctions[0]) return;
-    
             const genericRentalAuction = auctions[0];
+
+            if (ethers.utils.getAddress(genericRentalAuction.controllerObserver.owner) === address) {
+                navigate("/manage-auction/" + auctionAddress);
+                return;
+            }
+    
             setGenericRentalAuction(genericRentalAuction);
             setImage(await getImageFromAuctionItem(genericRentalAuction));
     
@@ -96,7 +101,7 @@ export default function Auction() {
         catch (e) {
             console.error(e);
         }
-    }, [auctionAddress, chain?.id, refetchCounter]); // todo chain change
+    }, [auctionAddress, chain?.id, refetchCounter, address]); // todo chain change
 
     const fetchTokenBalancesAndSymbols = React.useCallback(async () => {
         if (!superToken || !address || !chain) return;
