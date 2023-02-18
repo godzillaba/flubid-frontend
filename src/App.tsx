@@ -19,6 +19,7 @@ import { Container, createTheme, CssBaseline, ScopedCssBaseline, ThemeProvider }
 import TransactionAlert from './components/TransactionAlert';
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 import ManageAuction from './pages/ManageAuction';
+import { GenericRentalAuction_filter } from './graph/.graphclient';
 
 
 const { provider, webSocketProvider } = configureChains(

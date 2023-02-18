@@ -7,7 +7,7 @@ import FlowRateInput from "../components/FlowRateInput";
 import base64Lens from "../assets/lensProfile";
 import { ContinuousRentalAuctionByAddressDocument, ContinuousRentalAuctionByAddressQuery, execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from "../graph/.graphclient";
 import { BigNumber, ethers, Signer } from "ethers";
-import { constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, getItemsFromRentalAuctionsDocument, getSymbolOfSuperToken, makeOpenSeaLink, waitForGraphSync } from "../helpers";
+import { addMetadataToGenericRentalAuctions, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, getSymbolOfSuperToken, makeOpenSeaLink, waitForGraphSync } from "../helpers";
 import FlowRateDisplay from "../components/FlowRateDisplay";
 import { ExecutionResult } from "graphql";
 import { purple, red } from '@mui/material/colors';
@@ -69,8 +69,10 @@ export default function Auction() {
         if (!auctionAddress || !address) return;
     
         try {
-            const rentalAuctionResult = await execute(RentalAuctionByAddressDocument, { address: auctionAddress });
-            const auctions = await getItemsFromRentalAuctionsDocument(rentalAuctionResult.data);
+            const rentalAuctionResult = await execute(RentalAuctionByAddressDocument, { address: auctionAddress }) as ExecutionResult<RentalAuctionByAddressQuery>;
+            if (!rentalAuctionResult.data) throw new Error("No data");
+
+            const auctions = await addMetadataToGenericRentalAuctions(rentalAuctionResult.data.genericRentalAuctions);
             if (!auctions || !auctions[0]) return;
             const genericRentalAuction = auctions[0];
 

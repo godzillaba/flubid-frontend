@@ -25,6 +25,7 @@ export function ContinuousRentalAuctionInfo(props: ContinuousRentalAuctionInfoPr
 
             <p>Paused: {props.genericRentalAuction.paused ? "Yes" : "No"}</p>
             <p>Auction Owner: {ethers.utils.getAddress(props.genericRentalAuction.controllerObserver.owner)}</p>
+            <p>Beneficiary: {ethers.utils.getAddress(props.genericRentalAuction.beneficiary)}</p>
 
             <p>Top Bid: <FlowRateDisplay flowRate={props.genericRentalAuction.topBid / 1e18} currency={superTokenSymbol}/></p>
             <p>Current Renter: {props.genericRentalAuction.currentRenter === address ? "YOU" : ethers.utils.getAddress(props.genericRentalAuction.currentRenter)}</p>

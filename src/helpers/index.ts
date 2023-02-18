@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { ExecutionResult } from "graphql";
 import base64Lens from "../assets/lensProfile";
-import { BlockNumberDocument, BlockNumberQuery, execute, ExploreRentalAuctionsQuery } from "../graph/.graphclient";
+import { BlockNumberDocument, BlockNumberQuery, ERC721ControllerObserver, ERC721ControllerObserversByOwnerQuery, execute, RentalAuctionsQuery } from "../graph/.graphclient";
 
 
 const lensControllerImpl = "0xDBD4f875638fa3E8889D3d431E4bef464c27D7A3".toLowerCase();
@@ -112,12 +112,32 @@ export async function getImageFromAuctionItem(auctionItem: GenericRentalAuctionW
     }
 }
 
-export type GenericRentalAuctionWithMetadata = ExploreRentalAuctionsQuery["genericRentalAuctions"][0] & {metadata: {[key: string]: any}}
+export type GenericRentalAuction = RentalAuctionsQuery["genericRentalAuctions"][0];
 
-export async function getItemsFromRentalAuctionsDocument(queryResult: ExploreRentalAuctionsQuery | null | undefined): Promise<GenericRentalAuctionWithMetadata[] | null> {
-    if (!queryResult) return null;
+export type GenericRentalAuctionWithMetadata = GenericRentalAuction & {metadata: {[key: string]: any}}
 
-    const rentalAuctions = queryResult.genericRentalAuctions;
+export async function convertControllersQueryToGenericRentalAuctions(query: ERC721ControllerObserversByOwnerQuery): Promise<GenericRentalAuction[]> {
+    const auctions: GenericRentalAuction[] = [];
+
+    const data = query.erc721ControllerObservers;
+
+    for (let i = 0; i < data.length; i++) {
+        const deepCopy = JSON.parse(JSON.stringify(data[i])) as ERC721ControllerObserversByOwnerQuery["erc721ControllerObservers"][0];
+        const {genericRentalAuction: rentalAuctionMinusController, ...controllerMinusRentalAuction} = deepCopy;
+
+        auctions.push({
+            ...rentalAuctionMinusController,
+            controllerObserver: controllerMinusRentalAuction,
+        });
+    }
+
+    return auctions;
+}
+
+export async function addMetadataToGenericRentalAuctions(rentalAuctions: GenericRentalAuction[]): Promise<GenericRentalAuctionWithMetadata[]> {
+    // if (!queryResult) return null;
+
+    // const rentalAuctions = queryResult.genericRentalAuctions;
 
     const auctions = rentalAuctions.filter((auction: any) =>
         constants.officialControllerImpls.includes(auction.controllerObserverImplementation)

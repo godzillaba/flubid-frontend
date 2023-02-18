@@ -44,6 +44,61 @@ query ExploreRentalAuctions {
   }
 }
 
+# todo: remove other RentalAuctions queries
+query RentalAuctions($where: GenericRentalAuction_filter) {
+  genericRentalAuctions(where: $where) {
+    acceptedToken
+    address
+    beneficiary
+    controllerObserver {
+      address
+      auctionAddress
+      id
+      implementation
+      underlyingTokenContract
+      underlyingTokenID
+      underlyingTokenName
+      underlyingTokenURI
+      owner
+    }
+    controllerObserverImplementation
+    currentRenter
+    id
+    minimumBidFactorWad
+    reserveRate
+    topBid
+    type
+    paused
+  }
+}
+
+query ERC721ControllerObserversByOwner($owner: Bytes) {
+  erc721ControllerObservers(where: {owner: $owner}) {
+    address
+    auctionAddress
+    id
+    implementation
+    underlyingTokenContract
+    underlyingTokenID
+    underlyingTokenName
+    underlyingTokenURI
+    owner
+    genericRentalAuction {
+      acceptedToken
+      address
+      beneficiary
+      controllerObserverImplementation
+      currentRenter
+      id
+      minimumBidFactorWad
+      reserveRate
+      topBid
+      type
+      paused
+    }
+  }
+}
+
 query RentalAuctionByAddress($address: Bytes) {
   genericRentalAuctions(where: {address: $address}) {
     acceptedToken

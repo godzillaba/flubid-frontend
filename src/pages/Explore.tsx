@@ -4,12 +4,13 @@ import { Grid, TextField, useTheme } from '@mui/material';
 import { Container } from '@mui/system';
 
 
-import { execute, ExploreRentalAuctionsDocument, ExploreRentalAuctionsQuery } from "../graph/.graphclient";
+import { execute, ExploreRentalAuctionsDocument, ExploreRentalAuctionsQuery, RentalAuctionsDocument, RentalAuctionsQuery } from "../graph/.graphclient";
 import PageSpinner from '../components/PageSpinner';
 
-import { constants, GenericRentalAuctionWithMetadata, fixIpfsUri, getItemsFromRentalAuctionsDocument } from '../helpers';
+import { constants, GenericRentalAuctionWithMetadata, fixIpfsUri, GenericRentalAuction } from '../helpers';
 import ExploreAuctionInfoCard from '../components/ExploreAuctionItemCard';
 import { ExecutionResult } from 'graphql';
+import AuctionsList from '../components/AuctionsList';
 
 // async function getItemsFromRentalAuctionsDocument(rentalAuctions: any) {
 //   if (!rentalAuctions) return;
@@ -30,49 +31,26 @@ import { ExecutionResult } from 'graphql';
 //   });
 // }
 
-
 export default function Explore() {
   
   const [auctionItems, setAuctionItems]: [GenericRentalAuctionWithMetadata[], any] = React.useState([]);
+  const [auctions, setAuctions] = React.useState<GenericRentalAuction[]>([]);
 
   useEffect(() => {
-    execute(ExploreRentalAuctionsDocument, { first: 12, skip: 0 }).then((result: ExecutionResult<ExploreRentalAuctionsQuery>) => {
-      getItemsFromRentalAuctionsDocument(result?.data).then(items => {
-        if (items) setAuctionItems(items);
-      })
+    execute(RentalAuctionsDocument, {where: {}}).then((result: ExecutionResult<RentalAuctionsQuery>) => {
+      if (!result || !result.data) throw new Error("No data returned from rental auctions query");
+      setAuctions(result.data.genericRentalAuctions);
     })
   }, []);
 
   const theme = useTheme();
 
-  if (auctionItems.length == 0) return <PageSpinner />
+  if (!auctions.length) return <PageSpinner />
 
   return (
     <>
-      <Container>
-
-        <h1 style={{ display: 'flex', justifyContent: 'center' }}>Explore Auctions</h1>
-        <div style={{ marginBottom: theme.spacing(4) }}>
-          <Grid container spacing={0}>
-            <Grid item xs={2}></Grid>
-            <Grid item xs={8}>
-              <TextField fullWidth id="outlined-basic" label="Search by title or address" variant="outlined" />
-            </Grid>
-          </Grid>
-        </div>
-      </Container>
-
-      <div style={{ padding: theme.spacing(8) }}>
-        <Grid container spacing={2}>
-          {
-            auctionItems.map((auctionItem, index) => (              
-              <Grid item xs={12} md={2} key={index}>
-                <ExploreAuctionInfoCard auctionItem={auctionItem}></ExploreAuctionInfoCard>
-              </Grid>
-            ))
-          }
-        </Grid>
-      </div>
+      <h1 style={{ display: 'flex', justifyContent: 'center' }}>Explore Auctions</h1>
+      <AuctionsList genericRentalAuctions={auctions}/>
     </>
   );
 }

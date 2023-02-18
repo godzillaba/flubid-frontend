@@ -1,12 +1,13 @@
 import { Button, Card, Container, Grid, TextField, useTheme } from '@mui/material';
 import { ContractTransaction, ethers } from 'ethers';
+import { ExecutionResult } from 'graphql';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAccount, useProvider, useSigner } from 'wagmi';
 import { ContinuousRentalAuctionInfo } from '../components/ContinuousRentalAuctionInfo';
 import PageSpinner from '../components/PageSpinner';
-import { execute, RentalAuctionByAddressDocument } from '../graph/.graphclient';
-import { cmpAddr, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, getItemsFromRentalAuctionsDocument, waitForGraphSync } from '../helpers';
+import { execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from '../graph/.graphclient';
+import { addMetadataToGenericRentalAuctions, cmpAddr, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, waitForGraphSync } from '../helpers';
 
 // we want this to look like the auction page, but with the ability to edit the auction
 // there are really only 2 things that can be edited: the ownership of the controller and starting/stopping the auction
@@ -35,9 +36,10 @@ export default function ManageAuction() {
     // get auction data
     const fetchAuctionData = React.useCallback(async () => {
         if (!auctionAddress) return;
-        const rentalAuctionResult = await execute(RentalAuctionByAddressDocument, { address: auctionAddress }) as any;
+        const rentalAuctionResult = await execute(RentalAuctionByAddressDocument, { address: auctionAddress }) as ExecutionResult<RentalAuctionByAddressQuery>;
+        if (!rentalAuctionResult.data) throw new Error('failed to fetch auction data');
 
-        const auctions = await getItemsFromRentalAuctionsDocument(rentalAuctionResult.data);
+        const auctions = await addMetadataToGenericRentalAuctions(rentalAuctionResult.data.genericRentalAuctions);
 
         if (!auctions || !auctions.length) return;
 
