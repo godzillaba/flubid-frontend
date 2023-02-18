@@ -2,12 +2,10 @@ import { FormControl, MenuItem, Container, TextField, useTheme, Button, Stack } 
 import React, { Reducer } from 'react';
 import { useAccount, usePrepareContractWrite, useContractWrite, useSigner } from 'wagmi'
 import FlowRateInput from '../components/FlowRateInput';
-import { constants, getSuperTokenAddressFromSymbol } from '../helpers';
-import * as continuousRentalAuctionFactoryABIJson from "../abi/ContinuousRentalAuctionFactory.json"
-import { ethers } from 'ethers';
+import { constants, getLogsBySignature, getSuperTokenAddressFromSymbol, waitForGraphSync } from '../helpers';
+import { ContractTransaction, ethers } from 'ethers';
 import { AbiCoder } from 'ethers/lib/utils.js';
-
-const continuousRentalAuctionFactoryABI = continuousRentalAuctionFactoryABIJson;
+import { useNavigate } from 'react-router-dom';
 
 function reducer(state: Inputs, update: InputsUpdate) {
   return { ...state, [update.name]: update.value };
@@ -34,6 +32,7 @@ export default function CreateAuction() {
 
   const {address} = useAccount();
   const { data: signer, isError, isLoading } = useSigner();
+  const navigate = useNavigate();
   
 
   const theme = useTheme();
@@ -51,7 +50,8 @@ export default function CreateAuction() {
     controllerObserverImplementation: '',
     underlyingTokenAddress: '',
     underlyingTokenID: ''
-  })
+  });
+
 
   function handleInputChange(event: any) {
     const { name, value } = event.target;
@@ -60,7 +60,7 @@ export default function CreateAuction() {
 
   async function create() {
     if (!signer) return;
-    const factoryContract = new ethers.Contract(constants.continuousRentalAuctionFactory, continuousRentalAuctionFactoryABI.abi, signer);
+    const factoryContract = new ethers.Contract(constants.continuousRentalAuctionFactory, constants.abis.ContinuousRentalAuctionFactory, signer);
     
     const params = [
       getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
@@ -71,10 +71,24 @@ export default function CreateAuction() {
       new AbiCoder().encode(['address', 'uint256'], [ethers.utils.getAddress(inputs.underlyingTokenAddress), inputs.underlyingTokenID])
     ]
 
-    console.log(params)
+    const deployTx = await factoryContract.functions.create(...params) as ContractTransaction;
+    const receipt = await deployTx.wait();
 
-    const tx = await factoryContract.functions.create(...params);
-    console.log(tx);
+    const deployEvent = receipt.events?.find(e => e.event === 'ContinuousRentalAuctionDeployed');
+
+    if (!deployEvent) {
+      throw new Error('No deploy event found');
+    }
+
+    const auctionAddress = deployEvent.args?.auctionAddress;
+
+    if (!auctionAddress) {
+      throw new Error('No auction address found');
+    }
+    
+    await waitForGraphSync(receipt.blockNumber);
+    
+    navigate(`/manage-auction/${auctionAddress}`);
   }
 
   return (

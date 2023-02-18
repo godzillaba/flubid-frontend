@@ -19,6 +19,7 @@ import { useAccount, useNetwork, useProvider, useSigner } from 'wagmi'
 import TransactionAlert from "../components/TransactionAlert";
 import PlaceBid from "../components/PlaceBid";
 import PageSpinner from "../components/PageSpinner";
+import { ContinuousRentalAuctionInfo } from "../components/ContinuousRentalAuctionInfo";
 
 type ContinuousRentalAuction = ContinuousRentalAuctionByAddressQuery["continuousRentalAuctions"][0];
 
@@ -182,19 +183,7 @@ export default function Auction() {
                 </Grid>
                 <Grid item xs={6}>
                     <Card variant="outlined" style={cardStyle}>
-                        <h1 style={{ marginTop: 0 }}>{genericRentalAuction.controllerObserver.underlyingTokenName} #{genericRentalAuction.controllerObserver.underlyingTokenID}</h1>
-                        <sub>
-                            <a href={makeOpenSeaLink(genericRentalAuction.controllerObserver.underlyingTokenContract, genericRentalAuction.controllerObserver.underlyingTokenID)}>View on OpenSea</a>
-                        </sub>
-                        {/* <h2 style={{ marginTop: 0 }}>Auction Information</h2> */}
-                        <p>Currency: {superTokenSymbol}</p>
-                        <p>Auction Type: {auctionTypeReadable}</p>
-
-                        <p>Paused: {genericRentalAuction.paused ? "Yes" : "No"}</p>
-
-                        <p>Top Bid: <FlowRateDisplay flowRate={genericRentalAuction.topBid / 1e18} currency={superTokenSymbol}/></p>
-                        <p>Current Renter: {currentRenter === address ? "YOU" : currentRenter}</p>
-
+                        <ContinuousRentalAuctionInfo genericRentalAuction={genericRentalAuction}/>
                     </Card>
                 </Grid>
                 {

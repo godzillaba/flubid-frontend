@@ -1,6 +1,8 @@
+import { ethers } from "ethers";
 import { ExecutionResult } from "graphql";
 import base64Lens from "../assets/lensProfile";
 import { BlockNumberDocument, BlockNumberQuery, execute, ExploreRentalAuctionsQuery } from "../graph/.graphclient";
+
 
 const lensControllerImpl = "0xDBD4f875638fa3E8889D3d431E4bef464c27D7A3".toLowerCase();
 const erc4907ControllerImpl = "0x786f9d6Cd7B63b7d69fB716E3b16eb9e54E6AE4D".toLowerCase();
@@ -21,6 +23,11 @@ export const constants = {
     officialControllerImpls: [lensControllerImpl, erc4907ControllerImpl],
     zeroAddress: "0x0000000000000000000000000000000000000000",
     graphPollingInterval: 2000,
+    abis: {
+        ContinuousRentalAuctionFactory: require("../abi/ContinuousRentalAuctionFactory.json").abi,
+        IERC721Metadata: require("../abi/IERC721Metadata.json").abi,
+        ContinuousRentalAuction: require("../abi/ContinuousRentalAuction.json").abi,
+    },
     superTokens: {
         polygonMumbai: [
             {
@@ -43,6 +50,19 @@ export const constants = {
     },
     auctionTypesReadable
 };
+
+export function cmpAddr(a: string, b: string) {
+    return a.toLowerCase() === b.toLowerCase();
+}
+
+export function getLogsBySignature(logs: ethers.providers.Log[], signature: string) {
+    const topic = ethers.utils.keccak256(signature);
+    return getLogsByTopic0(logs, topic);
+}
+
+export function getLogsByTopic0(logs: ethers.providers.Log[], topic0: string) {
+    return logs.filter(log => log.topics[0] === topic0);
+}
 
 export function getSymbolOfSuperToken(network: Network, address: string): string {
     for (let i = 0; i < constants.superTokens[network].length; i++) {
