@@ -72,7 +72,7 @@ query RentalAuctions($where: GenericRentalAuction_filter) {
   }
 }
 
-query ERC721ControllerObserversByOwner($owner: Bytes) {
+query ERC721ControllerObserversByOwner($owner: Bytes!) {
   erc721ControllerObservers(where: {owner: $owner}) {
     address
     auctionAddress
@@ -99,7 +99,7 @@ query ERC721ControllerObserversByOwner($owner: Bytes) {
   }
 }
 
-query RentalAuctionByAddress($address: Bytes) {
+query RentalAuctionByAddress($address: Bytes!) {
   genericRentalAuctions(where: {address: $address}) {
     acceptedToken
     address

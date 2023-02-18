@@ -1,24 +1,35 @@
+import { ethers } from 'ethers';
 import { ExecutionResult } from 'graphql';
 import React from 'react';
 import { useAccount } from 'wagmi';
+import AuctionsList from '../components/AuctionsList';
 import { ERC721ControllerObserversByOwnerDocument, ERC721ControllerObserversByOwnerQuery, execute, RentalAuctionsQuery } from '../graph/.graphclient';
-import { convertControllersQueryToGenericRentalAuctions } from '../helpers';
+import { convertControllersQueryToGenericRentalAuctions, GenericRentalAuction } from '../helpers';
 
 export default function MyAuctions() {
   const { address } = useAccount();
-  const [queryResult, setQueryResult] = React.useState<RentalAuctionsQuery>();
+  const [auctions, setAuctions] = React.useState<GenericRentalAuction[]>([]);
+
   const fetchMyAuctions = React.useCallback(async () => {
-    const controllersResult: ExecutionResult<ERC721ControllerObserversByOwnerQuery> = await execute(ERC721ControllerObserversByOwnerDocument, { where: { owner: address } })
-    // we need to transform controllersResult into a RentalAuctionsQuery
-    // so we can use the same component to display the auctions
+    if (!address) return;
+    // todo: switch all as ExecutionResult to this way
+    const controllersResult: ExecutionResult<ERC721ControllerObserversByOwnerQuery> = await execute(ERC721ControllerObserversByOwnerDocument, { owner: address })
 
     if (!controllersResult.data) throw new Error("No data returned from controllers query");
+    console.log(controllersResult.data)
 
-    const auctions = convertControllersQueryToGenericRentalAuctions(controllersResult.data);
-
+    setAuctions(convertControllersQueryToGenericRentalAuctions(controllersResult.data));
   }, [address]);
+
+  React.useEffect(() => {
+    fetchMyAuctions();
+  }, [fetchMyAuctions]);
+
   return (
-    <h1>My Auctions</h1>
+    <>
+      <h1 style={{ display: 'flex', justifyContent: 'center' }}>My Auctions</h1>
+      <AuctionsList genericRentalAuctions={auctions}/>
+    </>
   );
 }
 

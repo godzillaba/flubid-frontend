@@ -116,7 +116,7 @@ export type GenericRentalAuction = RentalAuctionsQuery["genericRentalAuctions"][
 
 export type GenericRentalAuctionWithMetadata = GenericRentalAuction & {metadata: {[key: string]: any}}
 
-export async function convertControllersQueryToGenericRentalAuctions(query: ERC721ControllerObserversByOwnerQuery): Promise<GenericRentalAuction[]> {
+export function convertControllersQueryToGenericRentalAuctions(query: ERC721ControllerObserversByOwnerQuery): GenericRentalAuction[] {
     const auctions: GenericRentalAuction[] = [];
 
     const data = query.erc721ControllerObservers;

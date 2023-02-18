@@ -23,7 +23,7 @@ export default function AuctionsList(props: AuctionsListProps) {
     addMetadataToGenericRentalAuctions(props.genericRentalAuctions).then(items => {
       setAuctionItems(items);
     })
-  }, []);
+  }, [props.genericRentalAuctions]);
 
   const theme = useTheme();
 
