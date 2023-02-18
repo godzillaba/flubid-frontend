@@ -27,6 +27,7 @@ export const constants = {
         ContinuousRentalAuctionFactory: require("../abi/ContinuousRentalAuctionFactory.json").abi,
         IERC721Metadata: require("../abi/IERC721Metadata.json").abi,
         ContinuousRentalAuction: require("../abi/ContinuousRentalAuction.json").abi,
+        ERC721ControllerObserver: require("../abi/ERC721ControllerObserver.json").abi,
     },
     superTokens: {
         polygonMumbai: [

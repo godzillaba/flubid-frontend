@@ -1,12 +1,12 @@
 import { Button, Card, Container, Grid, TextField, useTheme } from '@mui/material';
-import { ethers } from 'ethers';
+import { ContractTransaction, ethers } from 'ethers';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAccount, useProvider } from 'wagmi';
+import { useAccount, useProvider, useSigner } from 'wagmi';
 import { ContinuousRentalAuctionInfo } from '../components/ContinuousRentalAuctionInfo';
 import PageSpinner from '../components/PageSpinner';
 import { execute, RentalAuctionByAddressDocument } from '../graph/.graphclient';
-import { cmpAddr, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, getItemsFromRentalAuctionsDocument } from '../helpers';
+import { cmpAddr, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, getItemsFromRentalAuctionsDocument, waitForGraphSync } from '../helpers';
 
 // we want this to look like the auction page, but with the ability to edit the auction
 // there are really only 2 things that can be edited: the ownership of the controller and starting/stopping the auction
@@ -22,8 +22,10 @@ export default function ManageAuction() {
 
     const {address} = useAccount();
     const provider = useProvider();
+    const { data: signer, isError, isLoading } = useSigner();
 
     const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata | null>(null);
+    const [ownerInput, setOwnerInput] = React.useState<string>('');
     const [tokenInfo, setTokenInfo] = React.useState<any>({
         currentOwner: '',
         isControllerApproved: false,
@@ -41,11 +43,6 @@ export default function ManageAuction() {
 
         const auction = auctions[0];
 
-        if (ethers.utils.getAddress(auction.controllerObserver.owner) !== address) {
-            navigate('/auction/' + auctionAddress);
-            return;
-        }
-
         const image = await getImageFromAuctionItem(auction);
 
         try {
@@ -59,7 +56,10 @@ export default function ManageAuction() {
                 isControllerApproved,
             });
         }
-        catch (e) {}
+        catch (e) {
+            console.error(e);
+            console.log('failed to fetch token info')
+        }
 
         setImage(image);
         setGenericRentalAuction(auction);
@@ -69,7 +69,79 @@ export default function ManageAuction() {
         fetchAuctionData();
     }, [fetchAuctionData]);
 
+    function handleOwnerInput(e: React.ChangeEvent<HTMLInputElement>) {
+        setOwnerInput(e.target.value);
+    }
+
+    async function handleTransferOwnership() {
+        if (!genericRentalAuction || !signer) return;
+        const controllerContract = new ethers.Contract(genericRentalAuction.controllerObserver.address, constants.abis.ERC721ControllerObserver, signer);
+        const tx = await controllerContract.transferOwnership(ownerInput) as ContractTransaction;
+        const receipt = await tx.wait();
+
+        console.log(receipt.logs)
+
+        await waitForGraphSync(receipt.blockNumber);
+
+        navigate('/auction/' + auctionAddress);
+    }
+    async function handleStartAuction() {
+        if (!genericRentalAuction || !signer) return;
+        const controllerContract = new ethers.Contract(genericRentalAuction.controllerObserver.address, constants.abis.ERC721ControllerObserver, signer);
+
+        const tx = await controllerContract.startAuction();
+        await tx.wait();
+
+        setTokenInfo({
+            currentOwner: genericRentalAuction.controllerObserver.address,
+            isControllerApproved: false,
+        });
+
+        setGenericRentalAuction({
+            ...genericRentalAuction,
+            paused: false,
+        });
+    }
+    async function handleStopAuction() {
+        if (!genericRentalAuction || !signer) return;
+        const controllerContract = new ethers.Contract(genericRentalAuction.controllerObserver.address, constants.abis.ERC721ControllerObserver, signer);
+        const tx = await controllerContract.stopAuction();
+        await tx.wait();
+
+        setGenericRentalAuction({
+            ...genericRentalAuction,
+            paused: true,
+        });
+    }
+    async function handleApproveController() {
+        if (!genericRentalAuction || !signer) return;
+        const tokenContract = new ethers.Contract(genericRentalAuction.controllerObserver.underlyingTokenContract, constants.abis.IERC721Metadata, signer);
+        const tx = await tokenContract.approve(genericRentalAuction.controllerObserver.address, genericRentalAuction.controllerObserver.underlyingTokenID);
+        await tx.wait();
+        
+        setTokenInfo({
+            ...tokenInfo,
+            isControllerApproved: true,
+        });
+    }
+    async function handleWithdrawToken() {
+        if (!genericRentalAuction || !signer) return;
+        const controllerContract = new ethers.Contract(genericRentalAuction.controllerObserver.address, constants.abis.ERC721ControllerObserver, signer);
+        const tx = await controllerContract.withdrawToken();
+        await tx.wait();
+
+        setTokenInfo({
+            isControllerApproved: false,
+            currentOwner: address,
+        });
+    }
+
     if (!genericRentalAuction || !image || !address) return <PageSpinner/>
+
+    if (!cmpAddr(genericRentalAuction.controllerObserver.owner, address)) {
+        navigate('/auction/' + auctionAddress);
+        return <></>;
+    }
 
     // check if user has access to the token. (either they own it or the controller owns it)
     const doesUserOwnToken = cmpAddr(tokenInfo.currentOwner, address);
@@ -92,8 +164,8 @@ export default function ManageAuction() {
                     <Card variant='outlined' style={{...cardStyle, marginTop: theme.spacing(2)}}>
                         <h2>Transfer Ownership</h2>
                         <p>Transfer ownership of the Auction. Whoever owns the auction can withdraw the NFT, so be careful with this!</p>
-                        <TextField fullWidth label="New Owner Address" variant="outlined" />
-                        <Button fullWidth variant="outlined" color="success" style={{marginTop: theme.spacing(2)}}>
+                        <TextField fullWidth label="New Owner Address" variant="outlined" value={ownerInput} onChange={handleOwnerInput} />
+                        <Button fullWidth variant="outlined" color="success" style={{marginTop: theme.spacing(2)}} onClick={handleTransferOwnership}>
                             Transfer
                         </Button>
                     </Card>
@@ -119,7 +191,7 @@ export default function ManageAuction() {
                                         <>
                                             <h2>Start Auction</h2>
                                             <p>Start the auction. The Auction Controller must have approval to spend the NFT first.</p>
-                                            <Button fullWidth variant="outlined" color="success" style={{marginTop: theme.spacing(2)}}>
+                                            <Button fullWidth variant="outlined" color="success" style={{marginTop: theme.spacing(2)}} onClick={handleApproveController}>
                                                 Approve Controller
                                             </Button>
                                         </>
@@ -129,7 +201,7 @@ export default function ManageAuction() {
                                     return (
                                         <>
                                             <h2>Start Auction</h2>
-                                            <Button fullWidth variant="outlined" color="success" style={{marginTop: theme.spacing(2)}}>
+                                            <Button fullWidth variant="outlined" color="success" style={{marginTop: theme.spacing(2)}} onClick={handleStartAuction}>
                                                 Start Auction
                                             </Button>
                                         </>
@@ -138,24 +210,27 @@ export default function ManageAuction() {
                             }
                             else {
                                 // stop auction button
-                                <>
-                                    <h2>Stop Auction</h2>
-                                    <p>Stop the auction. This will allow you to withdraw your NFT</p>
-                                    <Button fullWidth variant="outlined" color="success" style={{marginTop: theme.spacing(2)}}>
-                                        Stop Auction
-                                    </Button>
-                                </>
+                                return (
+                                    <>
+                                        <h2>Stop Auction</h2>
+                                        <p>Stop the auction. This will allow you to withdraw your NFT</p>
+                                        <Button fullWidth variant="outlined" color="success" style={{marginTop: theme.spacing(2)}} onClick={handleStopAuction}>
+                                            Stop Auction
+                                        </Button>
+                                    </>
+                                )
                             }
                         })()}
                     </Card>
-
+                    
+                    {/* withdraw token button */}
                     {
                         // if we are paused and the current owner is the controller, then we can withdraw the token
                         tokenInfo.currentOwner === genericRentalAuction.controllerObserver.address && genericRentalAuction.paused ? 
                             <Card variant='outlined' style={{...cardStyle, marginTop: theme.spacing(2)}}>
                                 <h2>Withdraw Token</h2>
                                 <p>While the auction is paused, you can withdraw the NFT back to your wallet.</p>
-                                <Button fullWidth variant="outlined" color="success" style={{marginTop: theme.spacing(2)}}>
+                                <Button fullWidth variant="outlined" color="success" style={{marginTop: theme.spacing(2)}} onClick={handleWithdrawToken}>
                                     Withdraw Token
                                 </Button>
                             </Card>
