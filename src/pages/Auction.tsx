@@ -51,10 +51,10 @@ export default function Auction() {
     const [refetchCounter, setRefetchCounter] = React.useState(0);
 
     const [userFlowRate, setUserFlowRate] = React.useState<number>(0);
-    const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata | null>(null);
-    const [continuousRentalAuction, setContinuousRentalAuction] = React.useState<ContinuousRentalAuctionByAddressQuery["continuousRentalAuctions"][0] | null>(null);
-    const [superfluid, setSuperfluid] = React.useState<Framework | null>(null);
-    const [superToken, setSuperToken] = React.useState<SuperToken | null>(null);
+    const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata>();
+    const [continuousRentalAuction, setContinuousRentalAuction] = React.useState<ContinuousRentalAuctionByAddressQuery["continuousRentalAuctions"][0]>();
+    const [superfluid, setSuperfluid] = React.useState<Framework>();
+    const [superToken, setSuperToken] = React.useState<SuperToken>();
     const [superTokenSymbol, setSuperTokenSymbol] = React.useState("");
     const [underlyingTokenSymbol, setUnderlyingTokenSymbol] = React.useState("");
     const [superTokenBalance, setSuperTokenBalance] = React.useState<BigNumber>(BigNumber.from(0));

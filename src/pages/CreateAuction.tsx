@@ -6,6 +6,8 @@ import { constants, getLogsBySignature, getSuperTokenAddressFromSymbol, waitForG
 import { ContractTransaction, ethers } from 'ethers';
 import { AbiCoder } from 'ethers/lib/utils.js';
 import { useNavigate } from 'react-router-dom';
+import DurationInput from '../components/DurationInput';
+import { ContinuousRentalAuctionFactory__factory, EnglishRentalAuctionFactory, EnglishRentalAuctionFactory__factory } from '../types/ethers-contracts';
 
 function reducer(state: Inputs, update: InputsUpdate) {
   return { ...state, [update.name]: update.value };
@@ -17,6 +19,12 @@ type Inputs = {
   reserveRate: string,
   beneficiary: string,
   minimumBidFactor: string,
+
+  // english specific inputs
+  minRentalDuration: string,
+  maxRentalDuration: string,
+  biddingPhaseDuration: string,
+  biddingPhaseExtensionDuration: string,
 
   controllerObserverImplementation: string,
   underlyingTokenAddress: string,
@@ -47,10 +55,22 @@ export default function CreateAuction() {
     beneficiary: address || constants.zeroAddress,
     minimumBidFactor: '1.05',
 
+    // english specific inputs
+    minRentalDuration: '',
+    maxRentalDuration: '',
+    biddingPhaseDuration: '',
+    biddingPhaseExtensionDuration: '',
+
     controllerObserverImplementation: '',
     underlyingTokenAddress: '',
     underlyingTokenID: ''
   });
+
+  React.useEffect(() => {
+    if (address) {
+      updateInputs({ name: 'beneficiary', value: address });
+    }
+  }, [address]);
 
 
   function handleInputChange(event: any) {
@@ -58,20 +78,19 @@ export default function CreateAuction() {
     updateInputs({ name, value });
   }
 
-  async function create() {
-    if (!signer) return;
-    const factoryContract = new ethers.Contract(constants.continuousRentalAuctionFactory, constants.abis.ContinuousRentalAuctionFactory, signer);
-    
-    const params = [
+  async function createContinuous(): Promise<string> {
+    if (!signer) return '';
+    // const factoryContract = new ethers.Contract(constants.continuousRentalAuctionFactory, constants.abis.ContinuousRentalAuctionFactory, signer);
+    const factoryContract = ContinuousRentalAuctionFactory__factory.connect(constants.continuousRentalAuctionFactory, signer);
+  
+    const deployTx = await factoryContract.create(
       getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
       inputs.controllerObserverImplementation === 'ERC4907ControllerObserver' ? constants.erc4907ControllerImpl : constants.lensControllerImpl,
       inputs.beneficiary,
       ethers.BigNumber.from(Math.floor(Number(inputs.minimumBidFactor) * 1e18) + ''),
       ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
       new AbiCoder().encode(['address', 'uint256'], [ethers.utils.getAddress(inputs.underlyingTokenAddress), inputs.underlyingTokenID])
-    ]
-
-    const deployTx = await factoryContract.functions.create(...params) as ContractTransaction;
+    );
     const receipt = await deployTx.wait();
 
     const deployEvent = receipt.events?.find(e => e.event === 'ContinuousRentalAuctionDeployed');
@@ -87,8 +106,55 @@ export default function CreateAuction() {
     }
     
     await waitForGraphSync(receipt.blockNumber);
+
+    return auctionAddress;
+  }
+
+  async function createEnglish(): Promise<string> {
+    if (!signer) return '';
+    const factoryContract = EnglishRentalAuctionFactory__factory.connect(constants.englishRentalAuctionFactory, signer);
+
+    const deployTx = await factoryContract.create({
+      acceptedToken: getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
+      controllerObserverImplementation: inputs.controllerObserverImplementation === 'ERC4907ControllerObserver' ? constants.erc4907ControllerImpl : constants.lensControllerImpl,
+      beneficiary: inputs.beneficiary,
+      minimumBidFactorWad: ethers.BigNumber.from(Math.floor(Number(inputs.minimumBidFactor) * 1e18) + ''),
+      reserveRate: ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
+      minRentalDuration: ethers.BigNumber.from(Math.floor(Number(inputs.minRentalDuration)) + ''),
+      maxRentalDuration: ethers.BigNumber.from(Math.floor(Number(inputs.maxRentalDuration)) + ''),
+      biddingPhaseDuration: ethers.BigNumber.from(Math.floor(Number(inputs.biddingPhaseDuration)) + ''),
+      biddingPhaseExtensionDuration: ethers.BigNumber.from(Math.floor(Number(inputs.biddingPhaseExtensionDuration)) + ''),
+      controllerObserverExtraArgs: new AbiCoder().encode(['address', 'uint256'], [ethers.utils.getAddress(inputs.underlyingTokenAddress), inputs.underlyingTokenID])
+    });
+
+    const receipt = await deployTx.wait();
+    const deployEvent = receipt.events?.find(e => e.event === 'EnglishRentalAuctionDeployed');
+
+    if (!deployEvent) {
+      throw new Error('No deploy event found');
+    }
+
+    const auctionAddress = deployEvent.args?.auctionAddress;
+    if (!auctionAddress) {
+      throw new Error('No auction address found');
+    }
+    await waitForGraphSync(receipt.blockNumber);
+    return auctionAddress;
+  }
+
+  async function create() {
+    let auctionAddress;
+    if (inputs.auctionType === 'continuous') {
+      auctionAddress = await createContinuous();
+    } else {
+      auctionAddress = await createEnglish();
+    }
     
     navigate(`/manage-auction/${auctionAddress}`);
+  }
+
+  if (inputs.controllerObserverImplementation === 'LensControllerObserver') {
+    inputs.underlyingTokenAddress = constants.lensHubAddresses.polygonMumbai; // todo multichain
   }
 
   return (
@@ -146,6 +212,25 @@ export default function CreateAuction() {
         
         Reserve Rate: 
         <FlowRateInput displayCurrency="DAI" displayResult onChange={value => updateInputs({name: "reserveRate", value: value.toString()})}/>
+
+        {/* english specific options */}
+        {/* minRentalDuration, maxRentalDuration, biddingPhaseDuration, biddingPhaseExtensionDuration */}
+        {inputs.auctionType === 'english' ? (
+          <>
+            <br/>
+            <Stack direction="row" spacing={2}>
+            <DurationInput label="Minimum Rental Duration" onChange={value => updateInputs({ name: "minRentalDuration", value: value.toString() })}/>
+            <DurationInput label="Maximum Rental Duration" onChange={value => updateInputs({ name: "maxRentalDuration", value: value.toString() })}/>
+
+            </Stack>
+            <br/>
+            <Stack direction="row" spacing={2}>
+              <DurationInput label="Bidding Phase Duration" onChange={value => updateInputs({ name: "biddingPhaseDuration", value: value.toString() })}/>
+              <DurationInput label="Bidding Phase Extension Duration" onChange={value => updateInputs({ name: "biddingPhaseExtensionDuration", value: value.toString() })}/>
+            </Stack>
+          </>
+        ) : null}
+
         
         <br/><br/>
         
@@ -198,20 +283,6 @@ export default function CreateAuction() {
         </Button>
       </FormControl>
     </Container>
-
-    // title + description
-
-    // radio for auction type
-    // select menu for acceptedToken
-    // text input for beneficiary
-    // number input for minBidFactor
-    // number + select for reserveRate
-
-    // new section for controller
-    // radio for controllerObserver (4907, 4907Wrapper, Lens, basicpauseunpause, none)
-    // different params for each
-
-    // modal we have a 0 - 1 - 2 step indicator with a button underneath that says the current step (like approve and swap)
   );
 }
 

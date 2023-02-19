@@ -20,11 +20,13 @@ export const constants = {
     lensControllerImpl: lensControllerImpl,
     erc4907ControllerImpl: erc4907ControllerImpl,
     continuousRentalAuctionFactory: '0x862E55E8ab6CD3cf914Cd889e22C142BD7faD15f',
+    englishRentalAuctionFactory: '0x9d2E6d5511851EE77D423415162F3e1c1CDE3df1',
     officialControllerImpls: [lensControllerImpl, erc4907ControllerImpl],
     zeroAddress: "0x0000000000000000000000000000000000000000",
     graphPollingInterval: 2000,
     abis: {
         ContinuousRentalAuctionFactory: require("../abi/ContinuousRentalAuctionFactory.json").abi,
+        EnglishRentalAuctionFactory: require("../abi/EnglishRentalAuctionFactory.json").abi,
         IERC721Metadata: require("../abi/IERC721Metadata.json").abi,
         ContinuousRentalAuction: require("../abi/ContinuousRentalAuction.json").abi,
         ERC721ControllerObserver: require("../abi/ERC721ControllerObserver.json").abi,
@@ -49,7 +51,10 @@ export const constants = {
             },
         ],
     },
-    auctionTypesReadable
+    auctionTypesReadable,
+    lensHubAddresses : {
+        polygonMumbai: "0x60Ae865ee4C725cd04353b5AAb364553f56ceF82",
+    },
 };
 
 export function cmpAddr(a: string, b: string) {
