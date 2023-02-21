@@ -159,6 +159,7 @@ export default function Auction() {
                             superTokenBalance={superTokenBalance}
                             underlyingTokenBalance={underlyingTokenBalance}
                             superToken={superToken}
+                            sfFramework={superfluid}
                             afterTransaction={refetch}
                         />;
                     }

@@ -2,7 +2,8 @@ import { IconButton, Tooltip } from "@mui/material";
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { toFixedScientificNotation } from "../helpers";
 
-function makeFlowTooltipText(flowRate: number) {
+function makeFlowTooltipText(flowRate: number | string) {
+    flowRate = parseFloat(flowRate.toString());
     return <>
         <p>{toFixedScientificNotation(flowRate)} / second</p>
         <p>{toFixedScientificNotation(flowRate * 60)} / minute</p>
@@ -13,7 +14,7 @@ function makeFlowTooltipText(flowRate: number) {
     </> 
 }
 
-type FlowRateDisplayProps = {flowRate: number, currency: string};
+type FlowRateDisplayProps = {flowRate: number | string, currency: string};
 
 export default function FlowRateDisplay(props: FlowRateDisplayProps) {
     const tooltipText = makeFlowTooltipText(props.flowRate);

@@ -57,6 +57,18 @@ export const constants = {
     },
 };
 
+export function formattedDateStringFromSeconds(seconds: number) {
+    return formatDate(new Date(seconds * 1000));
+}
+
+export function formatDate(d: Date) {
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString(undefined, { hour12: false });
+}
+
+export function currentTime() {
+    return Math.floor(Date.now() / 1000);
+}
+
 export function toFixedScientificNotation(num: number): string {
     if (num === 0) {
         return "0";

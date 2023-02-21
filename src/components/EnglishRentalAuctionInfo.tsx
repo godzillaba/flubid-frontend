@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
 import { EnglishRentalAuction } from "../graph/.graphclient";
-import { cmpAddr, constants, GenericRentalAuctionWithMetadata, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
+import { cmpAddr, constants, formattedDateStringFromSeconds, GenericRentalAuctionWithMetadata, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
 import FlowRateDisplay from "./FlowRateDisplay";
 
 type EnglishRentalAuctionInfoProps = {
@@ -24,35 +24,24 @@ export function EnglishRentalAuctionInfo(props: EnglishRentalAuctionInfoProps) {
             {/* <h2 style={{ marginTop: 0 }}>Auction Information</h2> */}
             <p>Currency: {superTokenSymbol}</p>
             <p>Auction Type: {auctionTypeReadable}</p>
+            {/* todo: controller type. do this for continuous too */}
+
+            <p>Auction Owner: {ethers.utils.getAddress(props.genericRentalAuction.controllerObserver.owner)}</p>
+            <p>Beneficiary: {ethers.utils.getAddress(props.genericRentalAuction.beneficiary)}</p>
+            
+            {/* todo: nice duration display. go from year to second, first one that is > 1 use that as time unit */}
+            <p>Minimum Rental Duration: {props.englishRentalAuction.minRentalDuration} seconds</p>
+            <p>Maximum Rental Duration: {props.englishRentalAuction.maxRentalDuration} seconds</p>
+            <p>Bidding Phase Duration: {props.englishRentalAuction.biddingPhaseDuration} seconds</p>
+            <p>Bidding Phase Extension Duration: {props.englishRentalAuction.biddingPhaseExtensionDuration} seconds</p>
 
             <p>Current Phase: {(() => {
                 if (props.genericRentalAuction.paused) return "Paused";
                 if (props.englishRentalAuction.isBiddingPhase) return "Bidding";
                 return "Renting";
             })()}</p>
-            <p>Auction Owner: {ethers.utils.getAddress(props.genericRentalAuction.controllerObserver.owner)}</p>
-            <p>Beneficiary: {ethers.utils.getAddress(props.genericRentalAuction.beneficiary)}</p>
-
-            {/* minRentalDuration: BigInt!
-                maxRentalDuration: BigInt!
-                biddingPhaseDuration: BigInt!
-                biddingPhaseExtensionDuration: BigInt!
-
-                # English specific non constants
-                # todo phase info
-                topBidder: Bytes! # address
-                depositClaimed: Boolean!
-                isBiddingPhase: Boolean!
-
-                currentPhaseEndTime: BigInt! */}
             
-            {/* todo: nice duration display */}
-            <p>Minimum Rental Duration: {props.englishRentalAuction.minRentalDuration} seconds</p>
-            <p>Maximum Rental Duration: {props.englishRentalAuction.maxRentalDuration} seconds</p>
-            <p>Bidding Phase Duration: {props.englishRentalAuction.biddingPhaseDuration} seconds</p>
-            <p>Bidding Phase Extension Duration: {props.englishRentalAuction.biddingPhaseExtensionDuration} seconds</p>
-            
-            <p>Current Phase End Time: {props.englishRentalAuction.currentPhaseEndTime == 0 ? "\u{221E}" : new Date(props.englishRentalAuction.currentPhaseEndTime * 1000).toISOString()}</p>
+            <p>Current Phase End Time: {props.englishRentalAuction.currentPhaseEndTime == 0 ? "\u{221E}" : formattedDateStringFromSeconds(props.englishRentalAuction.currentPhaseEndTime)}</p>
 
             {/* if renting, show current renter and rent. if bidding, show top bidder and top bid */}
 
@@ -71,6 +60,7 @@ export function EnglishRentalAuctionInfo(props: EnglishRentalAuctionInfoProps) {
                 return (
                     <>
                         <p>Current Renter: {cmpAddr(props.genericRentalAuction.currentRenter, address || '') ? "YOU" : ethers.utils.getAddress(props.genericRentalAuction.currentRenter)}</p>
+                        <p>Rental Start Time: TODO</p>
                         <p>Current Rent: <FlowRateDisplay flowRate={props.genericRentalAuction.topBid / 1e18} currency={superTokenSymbol}/></p>
                     </>
                 )
