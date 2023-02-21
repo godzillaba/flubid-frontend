@@ -57,6 +57,26 @@ export const constants = {
     },
 };
 
+export function toFixedScientificNotation(num: number): string {
+    if (num === 0) {
+        return "0";
+    }
+
+    if (!Number.isFinite(num)) {
+        return num.toString();
+    }
+
+    const absNum = Math.abs(num);
+    if (absNum >= 1e-3 && absNum < 1e7) {
+        return num % 1 === 0 ? num.toString() : num.toFixed(3);
+    }
+
+    const exponent = Math.floor(Math.log10(absNum));
+    const mantissa = num / 10 ** exponent;
+
+    return mantissa.toFixed(3) + "e" + exponent;
+}
+
 export function cmpAddr(a: string, b: string) {
     return a.toLowerCase() === b.toLowerCase();
 }

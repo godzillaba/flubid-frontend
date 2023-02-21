@@ -1,37 +1,18 @@
-import { Alert, Button, Card, Chip, Container, Grid, LinearProgress, MenuItem, Select, Stack, TextField, useTheme } from "@mui/material";
-import { AbiCoder, parseEther } from "ethers/lib/utils.js";
-import React, { useEffect } from "react";
+import { Card, Container, Grid, useTheme } from "@mui/material";
+import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import FlowRateInput from "../components/FlowRateInput";
-
-import base64Lens from "../assets/lensProfile";
-import { ContinuousRentalAuctionByAddressDocument, ContinuousRentalAuctionByAddressQuery, execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from "../graph/.graphclient";
-import { BigNumber, ethers, Signer } from "ethers";
-import { addMetadataToGenericRentalAuctions, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, getSymbolOfSuperToken, makeOpenSeaLink, waitForGraphSync } from "../helpers";
-import FlowRateDisplay from "../components/FlowRateDisplay";
+import { ContinuousRentalAuctionByAddressDocument, execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery, EnglishRentalAuctionsByAddressDocument, ContinuousRentalAuction, EnglishRentalAuction } from "../graph/.graphclient";
+import { BigNumber, ethers } from "ethers";
+import { addMetadataToGenericRentalAuctions, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem } from "../helpers";
 import { ExecutionResult } from "graphql";
-import { purple, red } from '@mui/material/colors';
-import BidBar from "../components/BidBar";
 
-import * as ContinuousRentalAuctionABI from "../abi/ContinuousRentalAuction.json";
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
-import { useAccount, useNetwork, useProvider, useSigner } from 'wagmi'
-import TransactionAlert from "../components/TransactionAlert";
-import PlaceBid from "../components/PlaceBid";
+import { useAccount, useNetwork, useProvider, useSigner } from 'wagmi';
 import PageSpinner from "../components/PageSpinner";
 import { ContinuousRentalAuctionInfo } from "../components/ContinuousRentalAuctionInfo";
-
-type ContinuousRentalAuction = ContinuousRentalAuctionByAddressQuery["continuousRentalAuctions"][0];
-
-function findBidderAbove(bids: ContinuousRentalAuction["inboundStreams"], bidAmount: BigNumber, ignoreSender: string): string {
-    const sortedBids = bids.sort((a, b) => BigNumber.from(a.flowRate).sub(BigNumber.from(b.flowRate)).lt(0) ? -1 : 1);
-    
-    const foundBid = sortedBids.find(bid => BigNumber.from(bid.flowRate).gte(BigNumber.from(bidAmount)) && bid.sender != ignoreSender);
-    console.log(foundBid?.sender || constants.zeroAddress)
-    
-    return foundBid?.sender || constants.zeroAddress;
-  }
-  
+import { EnglishRentalAuctionInfo } from "../components/EnglishRentalAuctionInfo";
+import { ContinuousRentalAuctionInteractions } from "../components/ContinuousRentalAuctionInteractions";
+import { EnglishRentalAuctionInteractions } from "../components/EnglishRentalAuctionInteractions";
 
 export default function Auction() {
     const { auctionAddress } = useParams();
@@ -45,14 +26,13 @@ export default function Auction() {
 
     const { chain, chains } = useNetwork();
     const { address } = useAccount();
-    const { data: signer, isError, isLoading } = useSigner();
     const provider = useProvider();
 
     const [refetchCounter, setRefetchCounter] = React.useState(0);
 
-    const [userFlowRate, setUserFlowRate] = React.useState<number>(0);
     const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata>();
-    const [continuousRentalAuction, setContinuousRentalAuction] = React.useState<ContinuousRentalAuctionByAddressQuery["continuousRentalAuctions"][0]>();
+    const [continuousRentalAuction, setContinuousRentalAuction] = React.useState<ContinuousRentalAuction>();
+    const [englishRentalAuction, setEnglishRentalAuction] = React.useState<EnglishRentalAuction>();
     const [superfluid, setSuperfluid] = React.useState<Framework>();
     const [superToken, setSuperToken] = React.useState<SuperToken>();
     const [superTokenSymbol, setSuperTokenSymbol] = React.useState("");
@@ -80,16 +60,6 @@ export default function Auction() {
                 navigate("/manage-auction/" + auctionAddress);
                 return;
             }
-    
-            setGenericRentalAuction(genericRentalAuction);
-            setImage(await getImageFromAuctionItem(genericRentalAuction));
-    
-            if (genericRentalAuction.type === "continuous") {
-                const result = await execute(ContinuousRentalAuctionByAddressDocument, { address: auctionAddress });
-                setContinuousRentalAuction(result.data.continuousRentalAuctions[0]);
-            } else if (genericRentalAuction.type === "english") {
-                // todo
-            }
 
             // set superfluid stuff
             const sf = await Framework.create({
@@ -98,8 +68,18 @@ export default function Auction() {
             });
             const superToken = await sf.loadSuperToken(genericRentalAuction.acceptedToken);
 
+            if (genericRentalAuction.type === "continuous") {
+                const result = await execute(ContinuousRentalAuctionByAddressDocument, { address: auctionAddress });
+                setContinuousRentalAuction(result.data.continuousRentalAuctions[0]);
+            } else if (genericRentalAuction.type === "english") {
+                const result = await execute(EnglishRentalAuctionsByAddressDocument, { address: auctionAddress });
+                setEnglishRentalAuction(result.data.englishRentalAuctions[0]);
+            }
+
             setSuperToken(superToken);
             setSuperfluid(sf);
+            setGenericRentalAuction(genericRentalAuction);
+            setImage(await getImageFromAuctionItem(genericRentalAuction));
         }
         catch (e) {
             console.error(e);
@@ -133,49 +113,11 @@ export default function Auction() {
     React.useEffect(() => {
         fetchTokenBalancesAndSymbols();
     }, [fetchTokenBalancesAndSymbols]);
-
-    async function createUpdateOrDeleteBid(kind: 'create' | 'update' | 'delete') {
-        if (!superToken || !continuousRentalAuction || !address) throw new Error("stuff is undefined");
-        
-        let flowOp;
-        if (kind === 'delete') {
-            flowOp = superToken.deleteFlow({
-                sender: address as string,
-                receiver: genericRentalAuction?.address
-            });
-        }
-        else {
-            const flowRate = BigNumber.from(Math.round(userFlowRate * 1e18) + "");
-            const higherBidder = findBidderAbove(continuousRentalAuction.inboundStreams, flowRate, address);
-            const flowOpParams = {
-                sender: address as string,
-                receiver: genericRentalAuction?.address,
-                flowRate: Math.round(userFlowRate * 1e18) + "",
-                userData: new AbiCoder().encode(["address", "bytes"], [higherBidder, []]) // todo: not zero address always
-            };
-            if (kind === 'create') {
-                flowOp = superToken.createFlow(flowOpParams);
-            }
-            else {
-                flowOp = superToken.updateFlow(flowOpParams);
-            }
-        }
-        const tx = await (await flowOp.exec(signer as Signer)).wait();
-        await waitForGraphSync(tx.blockNumber);
-        refetch();
-    }
     
-    if (!genericRentalAuction || !superfluid) {
+    if (!genericRentalAuction || !superfluid || !superToken || !superTokenSymbol || !underlyingTokenSymbol) {
         return (<PageSpinner/>);
     }
 
-    const auctionTypeReadable = constants.auctionTypesReadable[genericRentalAuction?.type];
-    
-    const currentRenter = ethers.utils.getAddress(genericRentalAuction.currentRenter);
-
-    const myContinuousBid = continuousRentalAuction?.inboundStreams.find(x => ethers.utils.getAddress(x.sender) === address);
-    const positionInBidQueue = continuousRentalAuction?.inboundStreams.sort((a, b) => b.flowRate - a.flowRate).map(x => x.sender).indexOf(address?.toLowerCase());
-    
     return (
         <Container style={{ marginTop: theme.spacing(2) }}>
             {/* <TransactionAlert show={true} type='pending'/> */}
@@ -185,37 +127,42 @@ export default function Auction() {
                 </Grid>
                 <Grid item xs={6}>
                     <Card variant="outlined" style={cardStyle}>
-                        <ContinuousRentalAuctionInfo genericRentalAuction={genericRentalAuction}/>
+                        {continuousRentalAuction ? 
+                            <ContinuousRentalAuctionInfo genericRentalAuction={genericRentalAuction}/>
+                        : null}
+                        {englishRentalAuction ?
+                            <EnglishRentalAuctionInfo genericRentalAuction={genericRentalAuction} englishRentalAuction={englishRentalAuction} />
+                        : null}
                     </Card>
                 </Grid>
-                {
-                    !continuousRentalAuction || genericRentalAuction.topBid == 0 || genericRentalAuction.paused ? null :
-                    <Grid item xs={12}>
-                        <BidBar bids={continuousRentalAuction.inboundStreams.map(s => Number(s.flowRate))} currentBid={userFlowRate * 1e18}/>
-                    </Grid>
-                }
-                {
-                    !myContinuousBid ? null :
-                    <Grid item xs={6}>
-                        <Card variant="outlined" style={cardStyle}>
-                            <h2 style={{marginTop: 0}}>Your Bid</h2>
-                            <p><FlowRateDisplay flowRate={myContinuousBid.flowRate / 1e18} currency={superTokenSymbol}/></p>
-                            {positionInBidQueue != undefined ? <p>Position in bid queue: {positionInBidQueue + 1}</p> : null}
-                            <Button fullWidth variant="outlined" color="error" onClick={() => {createUpdateOrDeleteBid('delete')}}>Cancel Bid</Button>
-                        </Card>
-                    </Grid>
-                }
 
-                <PlaceBid config={{
-                    type: myContinuousBid ? 'update' : 'create',
-                    gridWidth: myContinuousBid ? 6 : 12,
-                    underlyingTokenSymbol,
-                    underlyingTokenBalance,
-                    superTokenSymbol,
-                    superTokenBalance,
-                    onUserFlowRateChange: setUserFlowRate,
-                    onBidClick: myContinuousBid ? () => {createUpdateOrDeleteBid('update')} : () => {createUpdateOrDeleteBid('create')}
-                }}/>
+                {(() => {
+                    if (genericRentalAuction.paused) return <></>;
+                    if (continuousRentalAuction) {
+                        return <ContinuousRentalAuctionInteractions 
+                            genericRentalAuction={genericRentalAuction} 
+                            continuousRentalAuction={continuousRentalAuction}
+                            superTokenSymbol={superTokenSymbol}
+                            underlyingTokenSymbol={underlyingTokenSymbol}
+                            superTokenBalance={superTokenBalance}
+                            underlyingTokenBalance={underlyingTokenBalance}
+                            superToken={superToken}
+                            afterTransaction={refetch}
+                        />;
+                    }
+                    if (englishRentalAuction) {
+                        return <EnglishRentalAuctionInteractions 
+                            genericRentalAuction={genericRentalAuction} 
+                            englishRentalAuction={englishRentalAuction}
+                            superTokenSymbol={superTokenSymbol}
+                            underlyingTokenSymbol={underlyingTokenSymbol}
+                            superTokenBalance={superTokenBalance}
+                            underlyingTokenBalance={underlyingTokenBalance}
+                            superToken={superToken}
+                            afterTransaction={refetch}
+                        />;
+                    }
+                })()}
             </Grid>
         </Container>
     );

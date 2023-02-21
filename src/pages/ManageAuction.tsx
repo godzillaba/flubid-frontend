@@ -5,8 +5,9 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAccount, useProvider, useSigner } from 'wagmi';
 import { ContinuousRentalAuctionInfo } from '../components/ContinuousRentalAuctionInfo';
+import { EnglishRentalAuctionInfo } from '../components/EnglishRentalAuctionInfo';
 import PageSpinner from '../components/PageSpinner';
-import { execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from '../graph/.graphclient';
+import { EnglishRentalAuction, EnglishRentalAuctionsByAddressDocument, EnglishRentalAuctionsByAddressQuery, execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from '../graph/.graphclient';
 import { addMetadataToGenericRentalAuctions, cmpAddr, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, waitForGraphSync } from '../helpers';
 
 // we want this to look like the auction page, but with the ability to edit the auction
@@ -26,6 +27,7 @@ export default function ManageAuction() {
     const { data: signer, isError, isLoading } = useSigner();
 
     const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata | null>(null);
+    const [englishRentalAuction, setEnglishRentalAuction] = React.useState<EnglishRentalAuction>();
     const [ownerInput, setOwnerInput] = React.useState<string>('');
     const [tokenInfo, setTokenInfo] = React.useState<any>({
         currentOwner: '',
@@ -47,11 +49,17 @@ export default function ManageAuction() {
 
         const image = await getImageFromAuctionItem(auction);
 
+        let englishRentalAuction;
+        if (auction.type === 'english') {
+            const result = await execute(EnglishRentalAuctionsByAddressDocument, { address: auctionAddress }) as ExecutionResult<EnglishRentalAuctionsByAddressQuery>;
+            englishRentalAuction = result.data?.englishRentalAuctions[0];
+        }
+
         try {
             const tokenContract = new ethers.Contract(auction.controllerObserver.underlyingTokenContract, constants.abis.IERC721Metadata, provider);
             const currentOwner = await tokenContract.ownerOf(auction.controllerObserver.underlyingTokenID);
             const getApproved = await tokenContract.getApproved(auction.controllerObserver.underlyingTokenID);
-            const isControllerApproved = getApproved === auction.controllerObserver.address || await tokenContract.isApprovedForAll(currentOwner, auction.controllerObserver.address);
+            const isControllerApproved = cmpAddr(getApproved, auction.controllerObserver.address) || await tokenContract.isApprovedForAll(currentOwner, auction.controllerObserver.address);
             
             setTokenInfo({
                 currentOwner,
@@ -65,6 +73,7 @@ export default function ManageAuction() {
 
         setImage(image);
         setGenericRentalAuction(auction);
+        setEnglishRentalAuction(englishRentalAuction)
     }, [auctionAddress]);
 
     React.useEffect(() => {
@@ -160,7 +169,12 @@ export default function ManageAuction() {
                 </Grid>
                 <Grid item xs={6}>
                     <Card variant='outlined' style={cardStyle}>
-                        <ContinuousRentalAuctionInfo genericRentalAuction={genericRentalAuction}/>
+                        {
+                            englishRentalAuction ? 
+                                <EnglishRentalAuctionInfo englishRentalAuction={englishRentalAuction} genericRentalAuction={genericRentalAuction}/> 
+                                : <ContinuousRentalAuctionInfo genericRentalAuction={genericRentalAuction}/>
+                        }
+                        
                     </Card>
                     
                     <Card variant='outlined' style={{...cardStyle, marginTop: theme.spacing(2)}}>

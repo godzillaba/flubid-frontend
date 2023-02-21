@@ -27,3 +27,4 @@ yarn-error.log*
 /src/graph/.graphclient
 
 foo.js
+src/types

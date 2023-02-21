@@ -139,6 +139,21 @@ query ContinuousRentalAuctionByAddress($address: Bytes) {
   }
 }
 
+query EnglishRentalAuctionsByAddress($address: Bytes) {
+  englishRentalAuctions(where: {address: $address}) {
+    id
+    address
+    minRentalDuration
+    maxRentalDuration
+    biddingPhaseDuration
+    biddingPhaseExtensionDuration
+    topBidder
+    depositClaimed
+    isBiddingPhase
+    currentPhaseEndTime
+  }
+}
+
 query BlockNumber {
   _meta {
     block {
