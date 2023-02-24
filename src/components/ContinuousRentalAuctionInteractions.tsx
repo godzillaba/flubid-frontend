@@ -111,24 +111,26 @@ export function ContinuousRentalAuctionInteractions(props: ContinuousRentalAucti
                 </Grid>
             )}
 
-            <PlaceBid
-                config={{
-                    type: myContinuousBid ? "update" : "create",
-                    gridWidth: myContinuousBid ? 6 : 12,
-                    underlyingTokenSymbol: props.underlyingTokenSymbol,
-                    underlyingTokenBalance: props.underlyingTokenBalance,
-                    superTokenSymbol: props.superTokenSymbol,
-                    superTokenBalance: props.superTokenBalance,
-                    onUserFlowRateChange: setUserFlowRate,
-                    onBidClick: myContinuousBid
-                        ? () => {
-                              continuousCreateUpdateOrDeleteBid("update");
-                          }
-                        : () => {
-                              continuousCreateUpdateOrDeleteBid("create");
-                          },
-                }}
-            />
+            {props.genericRentalAuction.paused ? null :
+                <PlaceBid
+                    config={{
+                        type: myContinuousBid ? "update" : "create",
+                        gridWidth: myContinuousBid ? 6 : 12,
+                        underlyingTokenSymbol: props.underlyingTokenSymbol,
+                        underlyingTokenBalance: props.underlyingTokenBalance,
+                        superTokenSymbol: props.superTokenSymbol,
+                        superTokenBalance: props.superTokenBalance,
+                        onUserFlowRateChange: setUserFlowRate,
+                        onBidClick: myContinuousBid
+                            ? () => {
+                                continuousCreateUpdateOrDeleteBid("update");
+                            }
+                            : () => {
+                                continuousCreateUpdateOrDeleteBid("create");
+                            },
+                    }}
+                />
+            }
         </>
     );
 }

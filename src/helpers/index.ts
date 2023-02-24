@@ -4,8 +4,8 @@ import base64Lens from "../assets/lensProfile";
 import { BlockNumberDocument, BlockNumberQuery, ERC721ControllerObserver, ERC721ControllerObserversByOwnerQuery, execute, RentalAuctionsQuery } from "../graph/.graphclient";
 
 
-const lensControllerImpl = "0xDBD4f875638fa3E8889D3d431E4bef464c27D7A3".toLowerCase();
-const erc4907ControllerImpl = "0x786f9d6Cd7B63b7d69fB716E3b16eb9e54E6AE4D".toLowerCase();
+const lensControllerImpl = "0xF4B43bd3Fa657D81c962459650797868E8C24a22".toLowerCase();
+const erc4907ControllerImpl = "0xd5D6D65a4ea4D5dE79eb79a1216bfeFBdb0B8BBB".toLowerCase();
 const auctionTypesReadable: {[key: string]: string} = {
     "continuous": "Continuous Rental Auction",
     "english": "English Rental Auction"
@@ -19,8 +19,8 @@ type Network = "polygonMumbai";
 export const constants = {
     lensControllerImpl: lensControllerImpl,
     erc4907ControllerImpl: erc4907ControllerImpl,
-    continuousRentalAuctionFactory: '0x862E55E8ab6CD3cf914Cd889e22C142BD7faD15f',
-    englishRentalAuctionFactory: '0x9d2E6d5511851EE77D423415162F3e1c1CDE3df1',
+    continuousRentalAuctionFactory: '0x68757A4b7E9B295c0F80f3a9D5d2e28E0427Bd33',
+    englishRentalAuctionFactory: '0x49906452839Ca14Ba7B51e8c3159183809EabACC',
     officialControllerImpls: [lensControllerImpl, erc4907ControllerImpl],
     zeroAddress: "0x0000000000000000000000000000000000000000",
     graphPollingInterval: 2000,
@@ -136,7 +136,7 @@ export function fixIpfsUri(uri: string): string {
 }
 
 export async function getImageFromAuctionItem(auctionItem: GenericRentalAuctionWithMetadata): Promise<string> {
-    if (auctionItem.controllerObserverImplementation.toLowerCase() === constants.lensControllerImpl) {
+    if (cmpAddr(auctionItem.controllerObserverImplementation, constants.lensControllerImpl)) {
         // HACK
         // use template lens image and replace handle. for some reason profile images returned from lensHub look weird
         return hackLensImage(auctionItem.metadata.name);

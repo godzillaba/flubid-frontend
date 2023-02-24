@@ -137,7 +137,6 @@ export default function Auction() {
                 </Grid>
 
                 {(() => {
-                    if (genericRentalAuction.paused) return <></>;
                     if (continuousRentalAuction) {
                         return <ContinuousRentalAuctionInteractions 
                             genericRentalAuction={genericRentalAuction} 

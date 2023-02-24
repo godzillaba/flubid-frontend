@@ -122,6 +122,7 @@ export default function ManageAuction() {
         setGenericRentalAuction({
             ...genericRentalAuction,
             paused: true,
+            currentRenter: constants.zeroAddress
         });
     }
     async function handleApproveController() {
