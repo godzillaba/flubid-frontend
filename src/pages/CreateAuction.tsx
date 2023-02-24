@@ -2,7 +2,7 @@ import { FormControl, MenuItem, Container, TextField, useTheme, Button, Stack } 
 import React, { Reducer } from 'react';
 import { useAccount, usePrepareContractWrite, useContractWrite, useSigner } from 'wagmi'
 import FlowRateInput from '../components/FlowRateInput';
-import { constants, getLogsBySignature, getSuperTokenAddressFromSymbol, waitForGraphSync } from '../helpers';
+import { constants, ControllerName, getControllerByName, getLogsBySignature, getSuperTokenAddressFromSymbol, waitForGraphSync } from '../helpers';
 import { ContractTransaction, ethers } from 'ethers';
 import { AbiCoder } from 'ethers/lib/utils.js';
 import { useNavigate } from 'react-router-dom';
@@ -85,7 +85,7 @@ export default function CreateAuction() {
   
     const deployTx = await factoryContract.create(
       getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
-      inputs.controllerObserverImplementation === 'ERC4907ControllerObserver' ? constants.erc4907ControllerImpl : constants.lensControllerImpl,
+      getControllerByName(inputs.controllerObserverImplementation as ControllerName).implementation,
       inputs.beneficiary,
       ethers.BigNumber.from(Math.floor(Number(inputs.minimumBidFactor) * 1e18) + ''),
       ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
@@ -116,7 +116,7 @@ export default function CreateAuction() {
 
     const deployTx = await factoryContract.create({
       acceptedToken: getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
-      controllerObserverImplementation: inputs.controllerObserverImplementation === 'ERC4907ControllerObserver' ? constants.erc4907ControllerImpl : constants.lensControllerImpl,
+      controllerObserverImplementation: getControllerByName(inputs.controllerObserverImplementation as ControllerName).implementation,
       beneficiary: inputs.beneficiary,
       minimumBidFactorWad: ethers.BigNumber.from(Math.floor(Number(inputs.minimumBidFactor) * 1e18) + ''),
       reserveRate: ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
@@ -243,12 +243,13 @@ export default function CreateAuction() {
           select
           label="Controller Observer Type"
         >
-          <MenuItem key={1} value="ERC4907ControllerObserver">
-            ERC4907 Controller Observer
-          </MenuItem>
-          <MenuItem key={2} value="LensControllerObserver">
-            Lens Profile Controller Observer
-          </MenuItem>
+          {
+            constants.controllerTypes.map((c, i) => (
+              <MenuItem key={i} value={c.name}>
+                {c.name}
+              </MenuItem>
+            ))
+          }
         </TextField>
 
         <br/>
