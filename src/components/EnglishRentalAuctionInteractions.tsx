@@ -4,8 +4,9 @@ import { BigNumber, BigNumberish, ethers, Signer } from "ethers";
 import { AbiCoder } from "ethers/lib/utils.js";
 import React from "react";
 import { useAccount, useSigner } from "wagmi";
+import { MyContext, TransactionAlertStatus } from "../App";
 import { ContinuousRentalAuction, EnglishRentalAuction } from "../graph/.graphclient";
-import { cmpAddr, constants, currentTime, GenericRentalAuctionWithMetadata, toFixedScientificNotation, waitForGraphSync } from "../helpers";
+import { cmpAddr, constants, currentTime, GenericRentalAuctionWithMetadata, toFixedScientificNotation, waitForGraphSync, waitForTxPromise } from "../helpers";
 import { EnglishRentalAuction__factory } from "../types";
 import BidBar from "./BidBar";
 import FlowRateDisplay from "./FlowRateDisplay";
@@ -32,6 +33,9 @@ export function EnglishRentalAuctionInteractions(props: EnglishRentalAuctionInte
     const cardStyle = {
         padding: theme.spacing(2),
     };
+
+    const { setTransactionAlertStatus } = React.useContext(MyContext);
+
     const [userFlowRate, setUserFlowRate] = React.useState<number>(0);
     
     const iHaveTopBid = cmpAddr(props.englishRentalAuction.topBidder, address || '');
@@ -100,53 +104,49 @@ export function EnglishRentalAuctionInteractions(props: EnglishRentalAuctionInte
     async function placeBid() {
         if (!signer || !address) throw new Error("Signer or address undefined");
 
-        console.log('placeBid')
+        try {
+            setTransactionAlertStatus(TransactionAlertStatus.Pending);
 
-        const isApprovedERC20Result = await isApprovedERC20(calculateDepositSize(userFlowRateBigInt()));
-        const isApprovedFlowOperatorResult = await isApprovedFlowOperator(userFlowRateBigInt());
+            const isApprovedERC20Result = await isApprovedERC20(calculateDepositSize(userFlowRateBigInt()));
+            const isApprovedFlowOperatorResult = await isApprovedFlowOperator(userFlowRateBigInt());
+            
+            const ops: Operation[] = [];
+            
+            if (!isApprovedERC20Result) {
+                ops.push(approveERC20Operation(calculateDepositSize(userFlowRateBigInt())));
+            }
+            
+            if (!isApprovedFlowOperatorResult) {
+                ops.push(approveFlowOperatorOperation());
+            }
+            
+            ops.push(callSuperAppOperation());
+            
+            console.log(ops);
+            
+            const batchCall = props.sfFramework.batchCall(ops);
 
-        console.log(isApprovedERC20Result, isApprovedFlowOperatorResult)
+            await waitForTxPromise(batchCall.exec(signer), setTransactionAlertStatus);
 
-        const ops: Operation[] = [];
-
-        if (!isApprovedERC20Result) {
-            ops.push(approveERC20Operation(calculateDepositSize(userFlowRateBigInt())));
+            props.afterTransaction();
         }
-        
-        if (!isApprovedFlowOperatorResult) {
-            ops.push(approveFlowOperatorOperation());
+        catch(e) {
+            setTransactionAlertStatus(TransactionAlertStatus.Fail);
+            throw e;
         }
-
-        ops.push(callSuperAppOperation());
-
-        console.log(ops);
-
-        const batchCall = props.sfFramework.batchCall(ops);
-        const tx = await batchCall.exec(signer);
-        const receipt = await tx.wait();
-
-        await waitForGraphSync(receipt.blockNumber);
-
-        props.afterTransaction();
     }
 
     async function transitionToRentalPhase() {
         if (!signer || !address) throw new Error("Signer or address undefined");
-
         const auctionContract = EnglishRentalAuction__factory.connect(props.genericRentalAuction.address, signer);
-        const tx = await auctionContract.transitionToRentalPhase();
-        const receipt = await tx.wait();
-        await waitForGraphSync(receipt.blockNumber);
+        await waitForTxPromise(auctionContract.transitionToRentalPhase(), setTransactionAlertStatus);
         props.afterTransaction();
     }
 
     async function transitionToBiddingPhase() {
         if (!signer || !address) throw new Error("Signer or address undefined");
-
         const auctionContract = EnglishRentalAuction__factory.connect(props.genericRentalAuction.address, signer);
-        const tx = await auctionContract.transitionToBiddingPhase();
-        const receipt = await tx.wait();
-        await waitForGraphSync(receipt.blockNumber);
+        await waitForTxPromise(auctionContract.transitionToBiddingPhase(), setTransactionAlertStatus);
         props.afterTransaction();
     }
 

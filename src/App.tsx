@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import ReactDOM from 'react-dom';
 import '@fontsource/roboto';
 
@@ -20,6 +20,7 @@ import TransactionAlert from './components/TransactionAlert';
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 import ManageAuction from './pages/ManageAuction';
 import { GenericRentalAuction_filter } from './graph/.graphclient';
+import { constants } from './helpers';
 
 
 const { provider, webSocketProvider } = configureChains(
@@ -43,6 +44,16 @@ const darkTheme = createTheme({
   },
 });
 
+export enum TransactionAlertStatus {
+  None = "None",
+  Pending = "Pending",
+  Success = "Succeeded",
+  Fail = "Failed"
+}
+
+export const MyContext = React.createContext({
+  setTransactionAlertStatus: (status: TransactionAlertStatus) => {}
+});
 
 function App() {
 
@@ -63,24 +74,39 @@ function App() {
   const { isConnected } = useAccount();
   const { chain, chains } = useNetwork();
 
+  const [transactionAlertStatus, setTransactionAlertStatus] = useState<TransactionAlertStatus>(TransactionAlertStatus.None);
+  const [lastTimeout, setLastTimeout] = useState<NodeJS.Timeout>();
+
+  function handleTransactionAlertChange(status: TransactionAlertStatus) {
+    clearTimeout(lastTimeout);
+    setTransactionAlertStatus(status);
+    if (status != TransactionAlertStatus.Pending) {
+      setLastTimeout(setTimeout(() => {
+        setTransactionAlertStatus(TransactionAlertStatus.None);
+      }, constants.transactionAlertTimeout));
+    }
+  }
+
   return (
     <WagmiConfig client={client}>
       <ThemeProvider theme={darkTheme}>
         <CssBaseline/>
         <HashRouter>
           <TopBar></TopBar>
-          {/* <TransactionAlert show={true} type='pending'/> */}
-          {
-            isConnected && chain?.id == polygonMumbai.id ?  // todo multichain
-              <Routes>
-                <Route path="/" element={<Explore/>}/>
-                <Route path="/my-auctions" element={<MyAuctions/>}/>
-                <Route path="/create-auction" element={<CreateAuction/>}/>
-                <Route path="/manage-auction/:auctionAddress" element={<ManageAuction/>}/>
-                <Route path="/auction/:auctionAddress" element={<Auction/>}/>
-              </Routes>
-            : null
-          }
+          <MyContext.Provider value={{ setTransactionAlertStatus: handleTransactionAlertChange }}>
+            <TransactionAlert status={transactionAlertStatus}/>
+            {
+              isConnected && chain?.id == polygonMumbai.id ?  // todo multichain
+                <Routes>
+                  <Route path="/" element={<Explore/>}/>
+                  <Route path="/my-auctions" element={<MyAuctions/>}/>
+                  <Route path="/create-auction" element={<CreateAuction/>}/>
+                  <Route path="/manage-auction/:auctionAddress" element={<ManageAuction/>}/>
+                  <Route path="/auction/:auctionAddress" element={<Auction/>}/>
+                </Routes>
+              : null
+            }
+          </MyContext.Provider>
         </HashRouter>
       </ThemeProvider>
     </WagmiConfig>

@@ -1,5 +1,6 @@
-import { ethers } from "ethers";
+import { ContractTransaction, ethers } from "ethers";
 import { ExecutionResult } from "graphql";
+import { TransactionAlertStatus } from "../App";
 import base64Lens from "../assets/lensProfile";
 import { BlockNumberDocument, BlockNumberQuery, ERC721ControllerObserver, ERC721ControllerObserversByOwnerQuery, execute, RentalAuctionsQuery } from "../graph/.graphclient";
 
@@ -66,7 +67,8 @@ export const constants = {
                 { name: "ERC4907 Token ID", type: "uint256" },
             ]
         }
-    ]
+    ],
+    transactionAlertTimeout: 5000
 } as const;
 
 export type ControllerName = typeof constants.controllerTypes[number]["name"];
@@ -251,4 +253,19 @@ export function waitForGraphSync(minBlock: number) {
         const interval = setInterval(check, constants.graphPollingInterval);
         check();
     });
+}
+
+export async function waitForTxPromise(txPromise: Promise<ContractTransaction>, setTransactionAlertStatus: (status: TransactionAlertStatus) => void, waitForGraph: boolean = true) {
+    try {
+        setTransactionAlertStatus(TransactionAlertStatus.Pending);
+        const tx = await txPromise;
+        const receipt = await tx.wait();
+        if (waitForGraph) await waitForGraphSync(receipt.blockNumber);
+        setTransactionAlertStatus(TransactionAlertStatus.Success);
+        return receipt;
+    }
+    catch (e) {
+        setTransactionAlertStatus(TransactionAlertStatus.Fail);
+        throw e;
+    }
 }

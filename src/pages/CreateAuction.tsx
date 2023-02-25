@@ -2,12 +2,13 @@ import { FormControl, MenuItem, Container, TextField, useTheme, Button, Stack } 
 import React, { Reducer } from 'react';
 import { useAccount, usePrepareContractWrite, useContractWrite, useSigner } from 'wagmi'
 import FlowRateInput from '../components/FlowRateInput';
-import { constants, ControllerName, getControllerByName, getLogsBySignature, getSuperTokenAddressFromSymbol, waitForGraphSync } from '../helpers';
+import { constants, ControllerName, getControllerByName, getLogsBySignature, getSuperTokenAddressFromSymbol, waitForGraphSync, waitForTxPromise } from '../helpers';
 import { ContractTransaction, ethers } from 'ethers';
 import { AbiCoder } from 'ethers/lib/utils.js';
 import { useNavigate } from 'react-router-dom';
 import DurationInput from '../components/DurationInput';
 import { ContinuousRentalAuctionFactory__factory, EnglishRentalAuctionFactory, EnglishRentalAuctionFactory__factory } from '../types/ethers-contracts';
+import { MyContext, TransactionAlertStatus } from '../App';
 
 function reducer(state: Inputs, update: InputsUpdate) {
   return { ...state, [update.name]: update.value };
@@ -42,6 +43,7 @@ export default function CreateAuction() {
   const { data: signer, isError, isLoading } = useSigner();
   const navigate = useNavigate();
   
+  const { setTransactionAlertStatus } = React.useContext(MyContext);
 
   const theme = useTheme();
   const cardStyle = {
@@ -83,7 +85,7 @@ export default function CreateAuction() {
     // const factoryContract = new ethers.Contract(constants.continuousRentalAuctionFactory, constants.abis.ContinuousRentalAuctionFactory, signer);
     const factoryContract = ContinuousRentalAuctionFactory__factory.connect(constants.continuousRentalAuctionFactory, signer);
   
-    const deployTx = await factoryContract.create(
+    const deployTxPromise = factoryContract.create(
       getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
       getControllerByName(inputs.controllerObserverImplementation as ControllerName).implementation,
       inputs.beneficiary,
@@ -91,7 +93,8 @@ export default function CreateAuction() {
       ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
       new AbiCoder().encode(['address', 'uint256'], [ethers.utils.getAddress(inputs.underlyingTokenAddress), inputs.underlyingTokenID])
     );
-    const receipt = await deployTx.wait();
+
+    const receipt = await waitForTxPromise(deployTxPromise, setTransactionAlertStatus);
 
     const deployEvent = receipt.events?.find(e => e.event === 'ContinuousRentalAuctionDeployed');
 
@@ -105,8 +108,6 @@ export default function CreateAuction() {
       throw new Error('No auction address found');
     }
     
-    await waitForGraphSync(receipt.blockNumber);
-
     return auctionAddress;
   }
 
@@ -114,7 +115,7 @@ export default function CreateAuction() {
     if (!signer) return '';
     const factoryContract = EnglishRentalAuctionFactory__factory.connect(constants.englishRentalAuctionFactory, signer);
 
-    const deployTx = await factoryContract.create({
+    const deployTxPromise = factoryContract.create({
       acceptedToken: getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
       controllerObserverImplementation: getControllerByName(inputs.controllerObserverImplementation as ControllerName).implementation,
       beneficiary: inputs.beneficiary,
@@ -127,7 +128,8 @@ export default function CreateAuction() {
       controllerObserverExtraArgs: new AbiCoder().encode(['address', 'uint256'], [ethers.utils.getAddress(inputs.underlyingTokenAddress), inputs.underlyingTokenID])
     });
 
-    const receipt = await deployTx.wait();
+    const receipt = await waitForTxPromise(deployTxPromise, setTransactionAlertStatus);
+
     const deployEvent = receipt.events?.find(e => e.event === 'EnglishRentalAuctionDeployed');
 
     if (!deployEvent) {
@@ -138,18 +140,24 @@ export default function CreateAuction() {
     if (!auctionAddress) {
       throw new Error('No auction address found');
     }
-    await waitForGraphSync(receipt.blockNumber);
+
     return auctionAddress;
   }
 
   async function create() {
     let auctionAddress;
-    if (inputs.auctionType === 'continuous') {
-      auctionAddress = await createContinuous();
-    } else {
-      auctionAddress = await createEnglish();
+    try {
+      if (inputs.auctionType === 'continuous') {
+        auctionAddress = await createContinuous();
+      } else {
+        auctionAddress = await createEnglish();
+      }
     }
-    
+    catch (e) {
+      setTransactionAlertStatus(TransactionAlertStatus.Fail);
+      throw e;
+    }
+
     navigate(`/manage-auction/${auctionAddress}`);
   }
 
@@ -160,8 +168,6 @@ export default function CreateAuction() {
   return (
     <Container>
       <h1>Create Auction</h1>
-
-      {JSON.stringify(inputs)}
 
       <FormControl fullWidth>
         <TextField

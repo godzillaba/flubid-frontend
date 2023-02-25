@@ -1,48 +1,40 @@
 import React from 'react';
 import { InjectedConnector } from '@wagmi/core';
 import { useAccount, useConnect } from 'wagmi';
-import { Alert, Button, useTheme } from '@mui/material';
+import { Alert, AlertColor, Button, useTheme } from '@mui/material';
+import { TransactionAlertStatus } from '../App';
 
 type TransactionAlertProps = {
-    type: 'pending' | 'complete',
-    show: boolean
+    status: TransactionAlertStatus
 }
 
 export default function TransactionAlert(props: TransactionAlertProps) {
     const theme = useTheme();
 
-    if (!props.show) return <></>;
+    if (props.status === TransactionAlertStatus.None) {
+        return <></>;
+    }
 
-    if (props.type === 'pending') {
-        return (
-            <Alert 
-            severity="info" 
-            variant="outlined" 
-            // color="info" 
-            style={{
-                position: 'absolute', 
-                right: theme.spacing(2), 
-                marginTop: theme.spacing(2)
-            }}
-            >
-                Transaction Pending
-            </Alert>
-        )
+    let severity: AlertColor = "info";
+    if (props.status === TransactionAlertStatus.Fail) {
+        severity = "error";
     }
-    else {
-        return (
-            <Alert 
-            severity="success" 
+    else if (props.status === TransactionAlertStatus.Success) {
+        severity = "success";
+    }
+
+    return (
+        <Alert 
+            severity={severity} 
             variant="outlined" 
             style={{
                 position: 'absolute', 
                 right: theme.spacing(2), 
                 marginTop: theme.spacing(2)
             }}
-            >
-                Transaction Complete
-            </Alert>
-        )
-    }
+        >
+            Transaction {props.status}
+        </Alert>
+    )
 }
 

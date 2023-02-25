@@ -5,10 +5,11 @@ import { AbiCoder } from "ethers/lib/utils.js";
 import React from "react";
 import { useAccount, useSigner } from "wagmi";
 import { ContinuousRentalAuction } from "../graph/.graphclient";
-import { constants, GenericRentalAuctionWithMetadata, waitForGraphSync } from "../helpers";
+import { cmpAddr, constants, GenericRentalAuctionWithMetadata, waitForGraphSync, waitForTxPromise } from "../helpers";
 import BidBar from "./BidBar";
 import FlowRateDisplay from "./FlowRateDisplay";
 import PlaceBid from "./PlaceBid";
+import { MyContext, TransactionAlertStatus } from '../App';
 
 type ContinuousRentalAuctionInteractionsProps = {
     genericRentalAuction: GenericRentalAuctionWithMetadata;
@@ -26,7 +27,7 @@ type ContinuousRentalAuctionInteractionsProps = {
 function findBidderAbove(bids: ContinuousRentalAuction["inboundStreams"], bidAmount: BigNumber, ignoreSender: string): string {
     const sortedBids = bids.sort((a, b) => BigNumber.from(a.flowRate).sub(BigNumber.from(b.flowRate)).lt(0) ? -1 : 1);
     
-    const foundBid = sortedBids.find(bid => BigNumber.from(bid.flowRate).gte(BigNumber.from(bidAmount)) && bid.sender != ignoreSender);
+    const foundBid = sortedBids.find(bid => BigNumber.from(bid.flowRate).gte(BigNumber.from(bidAmount)) && !cmpAddr(bid.sender, ignoreSender));
     console.log(foundBid?.sender || constants.zeroAddress)
     
     return foundBid?.sender || constants.zeroAddress;
@@ -39,6 +40,9 @@ export function ContinuousRentalAuctionInteractions(props: ContinuousRentalAucti
     const cardStyle = {
         padding: theme.spacing(2),
     };
+
+    const { setTransactionAlertStatus } = React.useContext(MyContext);
+    
     const [userFlowRate, setUserFlowRate] = React.useState<number>(0);
     const myContinuousBid = props.continuousRentalAuction?.inboundStreams.find(x => ethers.utils.getAddress(x.sender) === address);
     const positionInBidQueue = props.continuousRentalAuction?.inboundStreams.sort((a, b) => b.flowRate - a.flowRate).map(x => x.sender).indexOf(address?.toLowerCase());
@@ -46,7 +50,7 @@ export function ContinuousRentalAuctionInteractions(props: ContinuousRentalAucti
 
     async function continuousCreateUpdateOrDeleteBid(kind: 'create' | 'update' | 'delete') {
         if (!props.superToken || !props.continuousRentalAuction || !address) throw new Error("stuff is undefined");
-        
+
         let flowOp;
         if (kind === 'delete') {
             flowOp = props.superToken.deleteFlow({
@@ -70,9 +74,9 @@ export function ContinuousRentalAuctionInteractions(props: ContinuousRentalAucti
                 flowOp = props.superToken.updateFlow(flowOpParams);
             }
         }
-        const tx = await (await flowOp.exec(signer as Signer)).wait();
-        await waitForGraphSync(tx.blockNumber);
         
+        await waitForTxPromise(flowOp.exec(signer as Signer), setTransactionAlertStatus);
+
         props.afterTransaction();
     }
 

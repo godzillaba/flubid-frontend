@@ -4,11 +4,12 @@ import { ExecutionResult } from 'graphql';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAccount, useProvider, useSigner } from 'wagmi';
+import { MyContext, TransactionAlertStatus } from '../App';
 import { ContinuousRentalAuctionInfo } from '../components/ContinuousRentalAuctionInfo';
 import { EnglishRentalAuctionInfo } from '../components/EnglishRentalAuctionInfo';
 import PageSpinner from '../components/PageSpinner';
 import { EnglishRentalAuction, EnglishRentalAuctionsByAddressDocument, EnglishRentalAuctionsByAddressQuery, execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from '../graph/.graphclient';
-import { addMetadataToGenericRentalAuctions, cmpAddr, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, waitForGraphSync } from '../helpers';
+import { addMetadataToGenericRentalAuctions, cmpAddr, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, waitForGraphSync, waitForTxPromise } from '../helpers';
 
 // we want this to look like the auction page, but with the ability to edit the auction
 // there are really only 2 things that can be edited: the ownership of the controller and starting/stopping the auction
@@ -25,6 +26,8 @@ export default function ManageAuction() {
     const {address} = useAccount();
     const provider = useProvider();
     const { data: signer, isError, isLoading } = useSigner();
+
+    const { setTransactionAlertStatus } = React.useContext(MyContext);
 
     const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata | null>(null);
     const [englishRentalAuction, setEnglishRentalAuction] = React.useState<EnglishRentalAuction>();
@@ -86,61 +89,69 @@ export default function ManageAuction() {
 
     async function handleTransferOwnership() {
         if (!genericRentalAuction || !signer) return;
+
         const controllerContract = new ethers.Contract(genericRentalAuction.controllerObserver.address, constants.abis.ERC721ControllerObserver, signer);
-        const tx = await controllerContract.transferOwnership(ownerInput) as ContractTransaction;
-        const receipt = await tx.wait();
+        const txPromise = controllerContract.transferOwnership(ownerInput);
 
-        console.log(receipt.logs)
-
-        await waitForGraphSync(receipt.blockNumber);
-
+        await waitForTxPromise(txPromise, setTransactionAlertStatus);
+        
         navigate('/auction/' + auctionAddress);
     }
+
     async function handleStartAuction() {
         if (!genericRentalAuction || !signer) return;
-        const controllerContract = new ethers.Contract(genericRentalAuction.controllerObserver.address, constants.abis.ERC721ControllerObserver, signer);
 
-        const tx = await controllerContract.startAuction();
-        await tx.wait();
+        const controllerContract = new ethers.Contract(genericRentalAuction.controllerObserver.address, constants.abis.ERC721ControllerObserver, signer);
+        
+        const txPromise = controllerContract.startAuction();
+        
+        await waitForTxPromise(txPromise, setTransactionAlertStatus, false);
 
         setTokenInfo({
             currentOwner: genericRentalAuction.controllerObserver.address,
             isControllerApproved: false,
         });
-
+        
         setGenericRentalAuction({
             ...genericRentalAuction,
             paused: false,
         });
     }
+
     async function handleStopAuction() {
         if (!genericRentalAuction || !signer) return;
-        const controllerContract = new ethers.Contract(genericRentalAuction.controllerObserver.address, constants.abis.ERC721ControllerObserver, signer);
-        const tx = await controllerContract.stopAuction();
-        await tx.wait();
 
+        const controllerContract = new ethers.Contract(genericRentalAuction.controllerObserver.address, constants.abis.ERC721ControllerObserver, signer);
+        const txPromise = controllerContract.stopAuction();
+        await waitForTxPromise(txPromise, setTransactionAlertStatus, false);
+        
         setGenericRentalAuction({
             ...genericRentalAuction,
             paused: true,
             currentRenter: constants.zeroAddress
         });
     }
+
     async function handleApproveController() {
         if (!genericRentalAuction || !signer) return;
+
         const tokenContract = new ethers.Contract(genericRentalAuction.controllerObserver.underlyingTokenContract, constants.abis.IERC721Metadata, signer);
-        const tx = await tokenContract.approve(genericRentalAuction.controllerObserver.address, genericRentalAuction.controllerObserver.underlyingTokenID);
-        await tx.wait();
+        const txPromise = tokenContract.approve(genericRentalAuction.controllerObserver.address, genericRentalAuction.controllerObserver.underlyingTokenID);
+        
+        await waitForTxPromise(txPromise, setTransactionAlertStatus, false);
         
         setTokenInfo({
             ...tokenInfo,
             isControllerApproved: true,
         });
     }
+
     async function handleWithdrawToken() {
         if (!genericRentalAuction || !signer) return;
+
         const controllerContract = new ethers.Contract(genericRentalAuction.controllerObserver.address, constants.abis.ERC721ControllerObserver, signer);
-        const tx = await controllerContract.withdrawToken();
-        await tx.wait();
+        const txPromise = controllerContract.withdrawToken();
+        await waitForTxPromise(txPromise, setTransactionAlertStatus, false);
 
         setTokenInfo({
             isControllerApproved: false,
