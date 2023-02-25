@@ -5,7 +5,7 @@ import '@fontsource/roboto';
 import NetworkSelect from './components/NetworkSelect';
 import TopBar from './components/TopBar';
 
-import { WagmiConfig, createClient, configureChains, useAccount, useNetwork } from 'wagmi'
+import { WagmiConfig, createClient, configureChains, useAccount, useNetwork, goerli, useProvider } from 'wagmi'
 import { polygonMumbai } from 'wagmi/chains'
 
 import { publicProvider } from 'wagmi/providers/public'
@@ -20,16 +20,12 @@ import TransactionAlert from './components/TransactionAlert';
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 import ManageAuction from './pages/ManageAuction';
 import { GenericRentalAuction_filter } from './graph/.graphclient';
-import { constants } from './helpers';
+import { constants, isChainSupported } from './helpers';
 
 
 const { provider, webSocketProvider } = configureChains(
-  [polygonMumbai],
-  [jsonRpcProvider({
-    rpc: (chain) => ({
-      http: `https://endpoints.omniatech.io/v1/matic/mumbai/public`,
-    }),
-  })],
+  constants.chains.map(x => x),
+  [publicProvider()],
 )
 
 const client = createClient({
@@ -96,7 +92,7 @@ function App() {
           <MyContext.Provider value={{ setTransactionAlertStatus: handleTransactionAlertChange }}>
             <TransactionAlert status={transactionAlertStatus}/>
             {
-              isConnected && chain?.id == polygonMumbai.id ?  // todo multichain
+              isConnected && chain && isChainSupported(chain.id) ?  // todo multichain
                 <Routes>
                   <Route path="/" element={<Explore/>}/>
                   <Route path="/my-auctions" element={<MyAuctions/>}/>
@@ -104,7 +100,7 @@ function App() {
                   <Route path="/manage-auction/:auctionAddress" element={<ManageAuction/>}/>
                   <Route path="/auction/:auctionAddress" element={<Auction/>}/>
                 </Routes>
-              : null
+              : <p>Please connect wallet and connect to a supported network.</p>
             }
           </MyContext.Provider>
         </HashRouter>

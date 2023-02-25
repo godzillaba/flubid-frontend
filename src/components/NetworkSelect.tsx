@@ -1,6 +1,7 @@
 import { FormControl, MenuItem, Select } from '@mui/material';
 import React from 'react';
 import { useAccount, useConnect, useNetwork, useSwitchNetwork } from 'wagmi';
+import { constants } from '../helpers';
 
 export default function NetworkSelect() {
   const { chain } = useNetwork()
@@ -27,7 +28,7 @@ export default function NetworkSelect() {
             displayEmpty
           >
             {
-              chains.map(chainOption => 
+              constants.chains.map(chainOption => 
                 <MenuItem key={chainOption.id} value={chainOption.id}>{chainOption.name}</MenuItem>
               )
             }

@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import { useAccount } from "wagmi";
-import { constants, GenericRentalAuctionWithMetadata, getControllerByImplementation, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
+import { useAccount, useNetwork } from "wagmi";
+import { ChainId, constants, GenericRentalAuctionWithMetadata, getControllerByImplementation, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
 import FlowRateDisplay from "./FlowRateDisplay";
 
 type ContinuousRentalAuctionInfoProps = {
@@ -8,10 +8,12 @@ type ContinuousRentalAuctionInfoProps = {
 }
 
 export function ContinuousRentalAuctionInfo(props: ContinuousRentalAuctionInfoProps) {
-    const superTokenSymbol = getSymbolOfSuperToken('polygonMumbai', props.genericRentalAuction.acceptedToken);
-    const auctionTypeReadable = constants.auctionTypesReadable[props.genericRentalAuction?.type];
-
     const {address} = useAccount();
+    const {chain} = useNetwork();
+    const chainId = chain!.id as ChainId;
+
+    const superTokenSymbol = getSymbolOfSuperToken(chainId, props.genericRentalAuction.acceptedToken);
+    const auctionTypeReadable = constants.auctionTypesReadable[props.genericRentalAuction?.type];
     
     return (
         <>

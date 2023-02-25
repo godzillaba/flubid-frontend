@@ -1,19 +1,22 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Card, useTheme } from '@mui/material';
-import { constants, GenericRentalAuctionWithMetadata, fixIpfsUri, getImageFromAuctionItem, getSymbolOfSuperToken, hackLensImage } from '../helpers';
+import { constants, GenericRentalAuctionWithMetadata, fixIpfsUri, getImageFromAuctionItem, getSymbolOfSuperToken, hackLensImage, ChainId } from '../helpers';
 import FlowRateDisplay from './FlowRateDisplay';
+import { useNetwork } from 'wagmi';
 
 type ExploreAuctionInfoCardProps = {
     auctionItem: GenericRentalAuctionWithMetadata
 }
 
 function ExploreAuctionInfoCard(props: ExploreAuctionInfoCardProps) {
+    const [image, setImage] = React.useState("")
+    const {chain} = useNetwork();
+    const chainId = chain!.id as ChainId;
+
     const titleStyle = {
         cursor: "pointer"
     };
-
-    const [image, setImage] = React.useState("")
 
     const theme = useTheme();
     const navigate = useNavigate();
@@ -23,7 +26,7 @@ function ExploreAuctionInfoCard(props: ExploreAuctionInfoCardProps) {
         getImageFromAuctionItem(props.auctionItem).then(setImage);
     }, []);
 
-    const currency = getSymbolOfSuperToken("polygonMumbai", props.auctionItem.acceptedToken);
+    const currency = getSymbolOfSuperToken(chainId, props.auctionItem.acceptedToken);
     const flowRate = Number(props.auctionItem.topBid || 0) / 1e18;
     const auctionType = props.auctionItem.type === 'english' ? 'English Rental Auction' : 'Continuous Rental Auction';
 

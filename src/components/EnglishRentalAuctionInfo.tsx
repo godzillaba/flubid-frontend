@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
-import { useAccount } from "wagmi";
+import { useAccount, useNetwork } from "wagmi";
 import { EnglishRentalAuction } from "../graph/.graphclient";
-import { cmpAddr, constants, formattedDateStringFromSeconds, GenericRentalAuctionWithMetadata, getControllerByImplementation, getSymbolOfSuperToken, makeOpenSeaLink, prettyDuration } from "../helpers";
+import { ChainId, cmpAddr, constants, formattedDateStringFromSeconds, GenericRentalAuctionWithMetadata, getControllerByImplementation, getSymbolOfSuperToken, makeOpenSeaLink, prettyDuration } from "../helpers";
 import FlowRateDisplay from "./FlowRateDisplay";
 
 type EnglishRentalAuctionInfoProps = {
@@ -10,10 +10,13 @@ type EnglishRentalAuctionInfoProps = {
 }
 
 export function EnglishRentalAuctionInfo(props: EnglishRentalAuctionInfoProps) {
-    const superTokenSymbol = getSymbolOfSuperToken('polygonMumbai', props.genericRentalAuction.acceptedToken);
+    const {address} = useAccount();
+    const {chain} = useNetwork();
+    const chainId = chain!.id as ChainId;
+
+    const superTokenSymbol = getSymbolOfSuperToken(chainId, props.genericRentalAuction.acceptedToken);
     const auctionTypeReadable = constants.auctionTypesReadable[props.genericRentalAuction?.type];
 
-    const {address} = useAccount();
 
     const rentalStartTime = props.englishRentalAuction.currentPhaseEndTime - props.englishRentalAuction.maxRentalDuration;
     

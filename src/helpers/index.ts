@@ -1,5 +1,6 @@
 import { ContractTransaction, ethers } from "ethers";
 import { ExecutionResult } from "graphql";
+import { goerli, polygonMumbai } from "wagmi/chains";
 import { TransactionAlertStatus } from "../App";
 import base64Lens from "../assets/lensProfile";
 import { BlockNumberDocument, BlockNumberQuery, ERC721ControllerObserver, ERC721ControllerObserversByOwnerQuery, execute, RentalAuctionsQuery } from "../graph/.graphclient";
@@ -9,9 +10,6 @@ const auctionTypesReadable: {[key: string]: string} = {
     "english": "English Rental Auction"
 }
 
-// export const enum Network {
-//     polygonMumbai = 'polygonMumbai'
-// }
 type Network = "polygonMumbai";
 
 export const constants = {
@@ -27,7 +25,7 @@ export const constants = {
         ERC721ControllerObserver: require("../abi/ERC721ControllerObserver.json").abi,
     },
     superTokens: {
-        polygonMumbai: [
+        80001: [ // mumbai
             {
                 address: "0x96B82B65ACF7072eFEb00502F45757F254c2a0D4".toLowerCase(),
                 symbol: "MATICx",
@@ -45,10 +43,21 @@ export const constants = {
                 symbol: "USDCx",
             },
         ],
+        5: []
     },
     auctionTypesReadable,
     lensHubAddresses : {
         polygonMumbai: "0x60Ae865ee4C725cd04353b5AAb364553f56ceF82",
+    },
+    factories: {
+        80001: { // mumbai
+            continuousRentalAuctionFactory: '0xaB0d45639Bc816ff79A02B73a81bb6fc1d6678A1',
+            englishRentalAuctionFactory: '0xD3345F3924789Da02645607C9B07f68836292361',
+        },
+        5: { // goerli
+            continuousRentalAuctionFactory: '0x041F369897Af6bFFf9d96F056756c11efd512557',
+            englishRentalAuctionFactory: '0xdeb68b4Cad98FB5a507a8480fE095D69F0558096',
+        }
     },
     controllerTypes: [
         {
@@ -68,10 +77,17 @@ export const constants = {
             ]
         }
     ],
+    chains: [polygonMumbai, goerli],
     transactionAlertTimeout: 5000
 } as const;
 
+export type ChainId = typeof constants.chains[number]["id"];
+
 export type ControllerName = typeof constants.controllerTypes[number]["name"];
+
+export function isChainSupported(chainId: number) {
+    return constants.chains.some(chain => chain.id === chainId);
+}
 
 export function getControllerByName(name: ControllerName) {
     for (let i = 0; i < constants.controllerTypes.length; i++) {
@@ -168,9 +184,9 @@ export function getLogsByTopic0(logs: ethers.providers.Log[], topic0: string) {
     return logs.filter(log => log.topics[0] === topic0);
 }
 
-export function getSymbolOfSuperToken(network: Network, address: string): string {
+export function getSymbolOfSuperToken(network: ChainId, address: string): string {
     for (let i = 0; i < constants.superTokens[network].length; i++) {
-        if (constants.superTokens[network][i].address === address.toLowerCase()) {
+        if (cmpAddr(constants.superTokens[network][i].address, address.toLowerCase())) {
             return constants.superTokens[network][i].symbol;
         }
     }
@@ -178,7 +194,7 @@ export function getSymbolOfSuperToken(network: Network, address: string): string
     return "";
 }
 
-export function getSuperTokenAddressFromSymbol(network: Network, symbol: string) {
+export function getSuperTokenAddressFromSymbol(network: ChainId, symbol: string) {
     // todo multichain
     for (let i = 0; i < constants.superTokens[network].length; i++) {
       if (constants.superTokens[network][i].symbol === symbol) {

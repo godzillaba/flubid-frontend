@@ -1,8 +1,8 @@
 import { FormControl, MenuItem, Container, TextField, useTheme, Button, Stack } from '@mui/material';
 import React, { Reducer } from 'react';
-import { useAccount, usePrepareContractWrite, useContractWrite, useSigner } from 'wagmi'
+import { useAccount, usePrepareContractWrite, useContractWrite, useSigner, useNetwork } from 'wagmi'
 import FlowRateInput from '../components/FlowRateInput';
-import { constants, ControllerName, getControllerByName, getLogsBySignature, getSuperTokenAddressFromSymbol, waitForGraphSync, waitForTxPromise } from '../helpers';
+import { ChainId, constants, ControllerName, getControllerByName, getLogsBySignature, getSuperTokenAddressFromSymbol, waitForGraphSync, waitForTxPromise } from '../helpers';
 import { ContractTransaction, ethers } from 'ethers';
 import { AbiCoder } from 'ethers/lib/utils.js';
 import { useNavigate } from 'react-router-dom';
@@ -40,6 +40,9 @@ export default function CreateAuction() {
 
   const {address} = useAccount();
   const { data: signer, isError, isLoading } = useSigner();
+  const {chain} = useNetwork();
+  const chainId = chain!.id as ChainId;
+
   const navigate = useNavigate();
   
   const { setTransactionAlertStatus } = React.useContext(MyContext);
@@ -84,7 +87,7 @@ export default function CreateAuction() {
     const factoryContract = ContinuousRentalAuctionFactory__factory.connect(constants.continuousRentalAuctionFactory, signer);
   
     const deployTxPromise = factoryContract.create(
-      getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
+      getSuperTokenAddressFromSymbol(chainId, inputs.acceptedToken),
       getControllerByName(inputs.controllerObserverImplementation as ControllerName).implementation,
       ethers.BigNumber.from(Math.floor(Number(inputs.minimumBidFactor) * 1e18) + ''),
       ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
@@ -113,7 +116,7 @@ export default function CreateAuction() {
     const factoryContract = EnglishRentalAuctionFactory__factory.connect(constants.englishRentalAuctionFactory, signer);
 
     const deployTxPromise = factoryContract.create({
-      acceptedToken: getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
+      acceptedToken: getSuperTokenAddressFromSymbol(chainId, inputs.acceptedToken),
       controllerObserverImplementation: getControllerByName(inputs.controllerObserverImplementation as ControllerName).implementation,
       minimumBidFactorWad: ethers.BigNumber.from(Math.floor(Number(inputs.minimumBidFactor) * 1e18) + ''),
       reserveRate: ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
