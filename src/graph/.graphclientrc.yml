@@ -1,9 +1,9 @@
 # .graphclientrc.yml
 sources:
-  - name: super-auction
+  - name: flubid-mumbai
     handler:
       graphql:
-        endpoint: https://api.thegraph.com/subgraphs/name/godzillaba/super-auction-test2
+        endpoint: https://api.thegraph.com/subgraphs/name/godzillaba/flubid-mumbai
 
 documents:
   - ./queries.graphql

@@ -53,7 +53,7 @@ export const constants = {
     controllerTypes: [
         {
             name: "Lens Protocol",
-            implementation: "0xF4B43bd3Fa657D81c962459650797868E8C24a22",
+            implementation: "0x0248c352B1295086c3805B2f2eb22833F317f007",
             parameters: [
                 { name: "Lens Hub", type: "address" },
                 { name: "Lens Profile ID", type: "uint256" },
@@ -61,7 +61,7 @@ export const constants = {
         },
         {
             name: "ERC4907 Token",
-            implementation: "0xd5D6D65a4ea4D5dE79eb79a1216bfeFBdb0B8BBB",
+            implementation: "0xaB9C46b4d0767Cb3733912dB28968317DbB97474",
             parameters: [
                 { name: "ERC4907 Address", type: "address" },
                 { name: "ERC4907 Token ID", type: "uint256" },
