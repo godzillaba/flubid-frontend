@@ -6,7 +6,7 @@ import React from "react";
 import { useAccount, useSigner } from "wagmi";
 import { MyContext, TransactionAlertStatus } from "../App";
 import { ContinuousRentalAuction, EnglishRentalAuction } from "../graph/.graphclient";
-import { cmpAddr, constants, currentTime, GenericRentalAuctionWithMetadata, toFixedScientificNotation, waitForGraphSync, waitForTxPromise } from "../helpers";
+import { cmpAddr, constants, currentTime, GenericRentalAuctionWithMetadata, prettyDuration, toFixedScientificNotation, waitForGraphSync, waitForTxPromise } from "../helpers";
 import { EnglishRentalAuction__factory } from "../types";
 import BidBar from "./BidBar";
 import FlowRateDisplay from "./FlowRateDisplay";
@@ -39,8 +39,19 @@ export function EnglishRentalAuctionInteractions(props: EnglishRentalAuctionInte
     const [userFlowRate, setUserFlowRate] = React.useState<number>(0);
     
     const iHaveTopBid = cmpAddr(props.englishRentalAuction.topBidder, address || '');
-    const canTransitionToRentalPhase = !props.genericRentalAuction.paused && props.englishRentalAuction.isBiddingPhase && currentTime() >= props.englishRentalAuction.currentPhaseEndTime;
-    const canTransitionToBiddingPhase = !props.genericRentalAuction.paused && !props.englishRentalAuction.isBiddingPhase && currentTime() >= props.englishRentalAuction.currentPhaseEndTime;
+    const canTransitionToRentalPhase = 
+        !props.genericRentalAuction.paused && 
+        props.englishRentalAuction.isBiddingPhase && 
+        props.englishRentalAuction.currentPhaseEndTime > 0 && 
+        currentTime() >= props.englishRentalAuction.currentPhaseEndTime;
+    
+    const canTransitionToBiddingPhase = 
+        !props.genericRentalAuction.paused && 
+        !props.englishRentalAuction.isBiddingPhase && 
+        currentTime() >= props.englishRentalAuction.currentPhaseEndTime;
+
+    const rentalStartTime = props.englishRentalAuction.currentPhaseEndTime - props.englishRentalAuction.maxRentalDuration;
+    const timeTillMinRentalDuration = rentalStartTime + parseInt(props.englishRentalAuction.minRentalDuration) - currentTime();
 
     console.log(props.englishRentalAuction)
 
@@ -243,7 +254,13 @@ export function EnglishRentalAuctionInteractions(props: EnglishRentalAuctionInte
                         <Grid item xs={12}>
                             <Card style={cardStyle} variant='outlined'>
                                 <h2>Cancel Lease</h2>
-                                <p>(If you haven't passed the minimum rental duration you may forfeit a portion of your deposit)</p>
+                                {/* <p>(If you haven't passed the minimum rental duration you may forfeit a portion of your deposit)</p> */}
+                                {timeTillMinRentalDuration > 0 ?
+                                    <>
+                                        <p>You have {prettyDuration(timeTillMinRentalDuration)} until the minimum rental duration elapses.</p>
+                                        <p>If you cancel your lease now, you will forfeit some of your deposit.</p>
+                                    </>
+                                : null}
                                 <Button
                                     fullWidth
                                     variant="outlined"

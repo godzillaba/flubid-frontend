@@ -14,6 +14,16 @@ function makeFlowTooltipText(flowRate: number | string) {
     </> 
 }
 
+function prettyFlowRate(rate: number | string, currency: string) {
+    rate = parseFloat(rate.toString());
+    if (rate > 1) return toFixedScientificNotation(rate) + ` ${currency} / sec`;
+    if (rate > 1 / 60) return toFixedScientificNotation(rate * 60) + ` ${currency} / min`;
+    if (rate > 1 / 60 / 60) return toFixedScientificNotation(rate * 60 * 60) + ` ${currency} / hour`;
+    if (rate > 1 / 60 / 60 / 24) return toFixedScientificNotation(rate * 60 * 60 * 24) + ` ${currency} / day`;
+    if (rate > 1 / 60 / 60 / 24 / 30) return toFixedScientificNotation(rate * 60 * 60 * 24 * 30) + ` ${currency} / 30 days`;
+    return toFixedScientificNotation(rate * 60 * 60 * 24 * 365) + ` ${currency} / year`;
+}
+
 type FlowRateDisplayProps = {flowRate: number | string, currency: string};
 
 export default function FlowRateDisplay(props: FlowRateDisplayProps) {
@@ -21,7 +31,7 @@ export default function FlowRateDisplay(props: FlowRateDisplayProps) {
 
     return (
         <>
-            {props.flowRate} {props.currency} / sec
+            {prettyFlowRate(props.flowRate, props.currency)}
             <Tooltip title={tooltipText}>
                 <IconButton>
                     <InfoOutlinedIcon />

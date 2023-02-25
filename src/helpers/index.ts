@@ -83,6 +83,16 @@ export function getControllerByName(name: ControllerName) {
     throw new Error("invalid controller name");
 }
 
+export function getControllerByImplementation(impl: string) {
+    for (let i = 0; i < constants.controllerTypes.length; i++) {
+        if (cmpAddr(constants.controllerTypes[i].implementation, impl)) {
+            return constants.controllerTypes[i];
+        }
+    }
+
+    throw new Error("invalid controller implementation");
+}
+
 export function isSupportedControllerImplementation(implementation: string) {
     for (let i = 0; i < constants.controllerTypes.length; i++) {
         if (cmpAddr(constants.controllerTypes[i].implementation, implementation)) {
@@ -90,6 +100,27 @@ export function isSupportedControllerImplementation(implementation: string) {
         }
     }
     return false;
+}
+
+export function prettyDuration(seconds: number) {
+    const secs = seconds % 60;
+    const mins = Math.floor(seconds / 60) % 60;
+    const hours = Math.floor(seconds / 3600) % 24;
+    const days = Math.floor(seconds / 86400);
+    const parts = [];
+    if (days > 0) {
+        parts.push(`${days} day${days > 1 ? "s" : ""}`)
+    }
+    if (hours > 0) {
+        parts.push(`${hours} hour${hours > 1 ? "s" : ""}`)
+    }
+    if (mins > 0) {
+        parts.push(`${mins} minute${mins > 1 ? "s" : ""}`)
+    }
+    if (secs > 0) {
+        parts.push(`${secs} second${secs > 1 ? "s" : ""}`)
+    }
+    return parts.join(", ");
 }
 
 export function formattedDateStringFromSeconds(seconds: number) {

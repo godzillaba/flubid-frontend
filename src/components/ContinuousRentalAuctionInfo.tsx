@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
-import { constants, GenericRentalAuctionWithMetadata, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
+import { constants, GenericRentalAuctionWithMetadata, getControllerByImplementation, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
 import FlowRateDisplay from "./FlowRateDisplay";
 
 type ContinuousRentalAuctionInfoProps = {
@@ -22,6 +22,7 @@ export function ContinuousRentalAuctionInfo(props: ContinuousRentalAuctionInfoPr
             {/* <h2 style={{ marginTop: 0 }}>Auction Information</h2> */}
             <p>Currency: {superTokenSymbol}</p>
             <p>Auction Type: {auctionTypeReadable}</p>
+            <p>Controller Type: {getControllerByImplementation(props.genericRentalAuction.controllerObserverImplementation).name}</p>
 
             <p>Paused: {props.genericRentalAuction.paused ? "Yes" : "No"}</p>
             <p>Auction Owner: {ethers.utils.getAddress(props.genericRentalAuction.controllerObserver.owner)}</p>
