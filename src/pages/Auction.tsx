@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ContinuousRentalAuctionByAddressDocument, execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery, EnglishRentalAuctionsByAddressDocument, ContinuousRentalAuction, EnglishRentalAuction } from "../graph/.graphclient";
 import { BigNumber, ethers } from "ethers";
-import { addMetadataToGenericRentalAuctions, ChainId, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getGraphSDK, getImageFromAuctionItem } from "../helpers";
+import { addMetadataToGenericRentalAuctions, ChainId, cmpAddr, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getGraphSDK, getImageFromAuctionItem } from "../helpers";
 import { ExecutionResult } from "graphql";
 
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
@@ -30,6 +30,8 @@ export default function Auction() {
     const provider = useProvider();
 
     const [refetchCounter, setRefetchCounter] = React.useState(0);
+
+    // todo: somehow deal with incorrect network on auction page
 
     const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata>();
     const [continuousRentalAuction, setContinuousRentalAuction] = React.useState<ContinuousRentalAuction>();
@@ -58,7 +60,7 @@ export default function Auction() {
             if (!auctions || !auctions[0]) return;
             const genericRentalAuction = auctions[0];
 
-            if (ethers.utils.getAddress(genericRentalAuction.controllerObserver.owner) === address) {
+            if (cmpAddr(genericRentalAuction.controllerObserver.owner, address)) {
                 navigate("/manage-auction/" + auctionAddress);
                 return;
             }

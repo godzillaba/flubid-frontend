@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { useAccount, useNetwork } from "wagmi";
-import { ChainId, constants, GenericRentalAuctionWithMetadata, getControllerByImplementation, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
+import { ChainId, cmpAddr, constants, GenericRentalAuctionWithMetadata, getControllerByImplementation, getSymbolOfSuperToken, makeOpenSeaLink } from "../helpers";
 import FlowRateDisplay from "./FlowRateDisplay";
 
 type ContinuousRentalAuctionInfoProps = {
@@ -31,7 +31,7 @@ export function ContinuousRentalAuctionInfo(props: ContinuousRentalAuctionInfoPr
             <p>Beneficiary: {ethers.utils.getAddress(props.genericRentalAuction.beneficiary)}</p>
 
             <p>Top Bid: <FlowRateDisplay flowRate={props.genericRentalAuction.topBid / 1e18} currency={superTokenSymbol}/></p>
-            <p>Current Renter: {props.genericRentalAuction.currentRenter === address ? "YOU" : ethers.utils.getAddress(props.genericRentalAuction.currentRenter)}</p>
+            <p>Current Renter: {cmpAddr(props.genericRentalAuction.currentRenter, address || '') ? "YOU" : ethers.utils.getAddress(props.genericRentalAuction.currentRenter)}</p>
         </>
     )
 }

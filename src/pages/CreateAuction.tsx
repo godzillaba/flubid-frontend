@@ -7,7 +7,7 @@ import { ContractTransaction, ethers } from 'ethers';
 import { AbiCoder } from 'ethers/lib/utils.js';
 import { useNavigate } from 'react-router-dom';
 import DurationInput from '../components/DurationInput';
-import { ContinuousRentalAuctionFactory__factory, EnglishRentalAuctionFactory, EnglishRentalAuctionFactory__factory } from '../types';
+import { ContinuousRentalAuctionFactory, ContinuousRentalAuctionFactory__factory, EnglishRentalAuctionFactory, EnglishRentalAuctionFactory__factory } from '../types';
 import { MyContext, TransactionAlertStatus } from '../App';
 
 function reducer(state: Inputs, update: InputsUpdate) {
@@ -54,7 +54,7 @@ export default function CreateAuction() {
 
   const [inputs, updateInputs] = React.useReducer<Reducer<Inputs, InputsUpdate>>(reducer, {
     auctionType: 'continuous',
-    acceptedToken: 'MATICx',
+    acceptedToken: '',
     reserveRate: '0',
     minimumBidFactor: '1.05',
 
@@ -69,11 +69,19 @@ export default function CreateAuction() {
     underlyingTokenID: ''
   });
 
+  const [continuousFactoryAddress, setContinuousFactoryAddress] = React.useState<string>();
+  const [englishFactoryAddress, setEnglishFactoryAddress] = React.useState<string>();
+
   React.useEffect(() => {
     if (address) {
       updateInputs({ name: 'beneficiary', value: address });
     }
   }, [address]);
+
+  React.useEffect(() => {
+    setContinuousFactoryAddress(constants.factories[chainId].continuousRentalAuctionFactory);
+    setEnglishFactoryAddress(constants.factories[chainId].englishRentalAuctionFactory);
+  }, [chainId])
 
 
   function handleInputChange(event: any) {
@@ -82,12 +90,12 @@ export default function CreateAuction() {
   }
 
   async function createContinuous(): Promise<string> {
-    if (!signer) return '';
-    // const factoryContract = new ethers.Contract(constants.continuousRentalAuctionFactory, constants.abis.ContinuousRentalAuctionFactory, signer);
-    const factoryContract = ContinuousRentalAuctionFactory__factory.connect(constants.continuousRentalAuctionFactory, signer);
+    if (!signer || !continuousFactoryAddress) throw new Error('No signer or factory address');
+
+    const factoryContract = ContinuousRentalAuctionFactory__factory.connect(continuousFactoryAddress, signer);
   
     const deployTxPromise = factoryContract.create(
-      getSuperTokenAddressFromSymbol(chainId, inputs.acceptedToken),
+      inputs.acceptedToken,
       getControllerByName(inputs.controllerObserverImplementation as ControllerName).implementation,
       ethers.BigNumber.from(Math.floor(Number(inputs.minimumBidFactor) * 1e18) + ''),
       ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
@@ -112,11 +120,11 @@ export default function CreateAuction() {
   }
 
   async function createEnglish(): Promise<string> {
-    if (!signer) return '';
-    const factoryContract = EnglishRentalAuctionFactory__factory.connect(constants.englishRentalAuctionFactory, signer);
+    if (!signer || !englishFactoryAddress) throw new Error('No signer or factory address');
+    const factoryContract = EnglishRentalAuctionFactory__factory.connect(englishFactoryAddress, signer);
 
     const deployTxPromise = factoryContract.create({
-      acceptedToken: getSuperTokenAddressFromSymbol(chainId, inputs.acceptedToken),
+      acceptedToken: inputs.acceptedToken,
       controllerObserverImplementation: getControllerByName(inputs.controllerObserverImplementation as ControllerName).implementation,
       minimumBidFactorWad: ethers.BigNumber.from(Math.floor(Number(inputs.minimumBidFactor) * 1e18) + ''),
       reserveRate: ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
@@ -160,9 +168,9 @@ export default function CreateAuction() {
     navigate(`/manage-auction/${auctionAddress}`);
   }
 
-  if (inputs.controllerObserverImplementation === 'LensControllerObserver') {
-    inputs.underlyingTokenAddress = constants.lensHubAddresses.polygonMumbai; // todo multichain
-  }
+  // if (inputs.controllerObserverImplementation === 'Lens Protocol') {
+  //   inputs.underlyingTokenAddress = constants.lensHubAddresses.polygonMumbai; // todo multichain
+  // }
 
   return (
     <Container>
@@ -193,8 +201,9 @@ export default function CreateAuction() {
           select
           label="Currency"
         >
-          <MenuItem key={1} value="MATICx">MATICx</MenuItem>
-          <MenuItem key={2} value="DAIx">DAIx</MenuItem>
+          {constants.superTokens[chainId].map((token, i) => (
+            <MenuItem key={i} value={token.address}>{token.symbol}</MenuItem>
+          ))}
         </TextField> <br/>
 
         <TextField 

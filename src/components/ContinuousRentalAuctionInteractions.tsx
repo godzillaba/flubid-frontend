@@ -44,7 +44,7 @@ export function ContinuousRentalAuctionInteractions(props: ContinuousRentalAucti
     const { setTransactionAlertStatus } = React.useContext(MyContext);
     
     const [userFlowRate, setUserFlowRate] = React.useState<number>(0);
-    const myContinuousBid = props.continuousRentalAuction?.inboundStreams.find(x => ethers.utils.getAddress(x.sender) === address);
+    const myContinuousBid = props.continuousRentalAuction?.inboundStreams.find(x => cmpAddr(ethers.utils.getAddress(x.sender), address!));
     const positionInBidQueue = props.continuousRentalAuction?.inboundStreams.sort((a, b) => b.flowRate - a.flowRate).map(x => x.sender).indexOf(address?.toLowerCase());
 
 

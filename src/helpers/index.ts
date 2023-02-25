@@ -13,8 +13,8 @@ const auctionTypesReadable: {[key: string]: string} = {
 type Network = "polygonMumbai";
 
 export const constants = {
-    continuousRentalAuctionFactory: '0xaB0d45639Bc816ff79A02B73a81bb6fc1d6678A1',
-    englishRentalAuctionFactory: '0xD3345F3924789Da02645607C9B07f68836292361',
+    // continuousRentalAuctionFactory: '0xaB0d45639Bc816ff79A02B73a81bb6fc1d6678A1',
+    // englishRentalAuctionFactory: '0xD3345F3924789Da02645607C9B07f68836292361',
     zeroAddress: "0x0000000000000000000000000000000000000000",
     graphPollingInterval: 2000,
     abis: {
@@ -27,23 +27,28 @@ export const constants = {
     superTokens: {
         80001: [ // mumbai
             {
-                address: "0x96B82B65ACF7072eFEb00502F45757F254c2a0D4".toLowerCase(),
+                address: "0x96B82B65ACF7072eFEb00502F45757F254c2a0D4",
                 symbol: "MATICx",
             },
             {
-                address: "0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f".toLowerCase(),
-                symbol: "DAIx",
+                address: "0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f",
+                symbol: "fDAIx",
             },
             {
-                address: "0x918E0d5C96cAC79674E2D38066651212be3C9C48".toLowerCase(),
-                symbol: "TUSDx",
+                address: "0x918E0d5C96cAC79674E2D38066651212be3C9C48",
+                symbol: "fTUSDx",
             },
             {
-                address: "0x42bb40bF79730451B11f6De1CbA222F17b87Afd7".toLowerCase(),
-                symbol: "USDCx",
+                address: "0x42bb40bF79730451B11f6De1CbA222F17b87Afd7",
+                symbol: "fUSDCx",
             },
         ],
-        5: []
+        5: [ // goerli
+            {
+                address: "0x5943F705aBb6834Cad767e6E4bB258Bc48D9C947",
+                symbol: "ETHx",
+            }
+        ]
     },
     auctionTypesReadable,
     lensHubAddresses : {

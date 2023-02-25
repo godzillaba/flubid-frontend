@@ -47,7 +47,7 @@ export default function Explore() {
     }).catch((err) => {
       console.error(err);
     });
-  }, []);
+  }, [chainId]);
 
   if (!auctions.length) return <PageSpinner />
 
