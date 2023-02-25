@@ -7,10 +7,13 @@ import { Container } from '@mui/system';
 import { execute, ExploreRentalAuctionsDocument, ExploreRentalAuctionsQuery, RentalAuctionsDocument, RentalAuctionsQuery } from "../graph/.graphclient";
 import PageSpinner from '../components/PageSpinner';
 
-import { constants, GenericRentalAuctionWithMetadata, fixIpfsUri, GenericRentalAuction } from '../helpers';
+import { constants, GenericRentalAuctionWithMetadata, fixIpfsUri, GenericRentalAuction, ChainId, getGraphSDK } from '../helpers';
 import ExploreAuctionInfoCard from '../components/ExploreAuctionItemCard';
 import { ExecutionResult } from 'graphql';
 import AuctionsList from '../components/AuctionsList';
+
+import { useNetwork } from 'wagmi';
+
 
 // async function getItemsFromRentalAuctionsDocument(rentalAuctions: any) {
 //   if (!rentalAuctions) return;
@@ -32,18 +35,19 @@ import AuctionsList from '../components/AuctionsList';
 // }
 
 export default function Explore() {
-  
-  const [auctionItems, setAuctionItems]: [GenericRentalAuctionWithMetadata[], any] = React.useState([]);
+  const {chain} = useNetwork();
+  const chainId = chain!.id as ChainId;
   const [auctions, setAuctions] = React.useState<GenericRentalAuction[]>([]);
 
-  useEffect(() => {
-    execute(RentalAuctionsDocument, {where: {}}).then((result: ExecutionResult<RentalAuctionsQuery>) => {
-      if (!result || !result.data) throw new Error("No data returned from rental auctions query");
-      setAuctions(result.data.genericRentalAuctions);
-    })
-  }, []);
+  const sdk = getGraphSDK(chainId);
 
-  const theme = useTheme();
+  useEffect(() => {
+    sdk.RentalAuctions().then((result) => {
+      setAuctions(result.genericRentalAuctions);
+    }).catch((err) => {
+      console.error(err);
+    });
+  }, []);
 
   if (!auctions.length) return <PageSpinner />
 

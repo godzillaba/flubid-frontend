@@ -3,7 +3,7 @@ import { ExecutionResult } from "graphql";
 import { goerli, polygonMumbai } from "wagmi/chains";
 import { TransactionAlertStatus } from "../App";
 import base64Lens from "../assets/lensProfile";
-import { BlockNumberDocument, BlockNumberQuery, ERC721ControllerObserver, ERC721ControllerObserversByOwnerQuery, execute, RentalAuctionsQuery } from "../graph/.graphclient";
+import { BlockNumberDocument, BlockNumberQuery, ERC721ControllerObserver, ERC721ControllerObserversByOwnerQuery, execute, getBuiltGraphSDK, RentalAuctionsQuery } from "../graph/.graphclient";
 
 const auctionTypesReadable: {[key: string]: string} = {
     "continuous": "Continuous Rental Auction",
@@ -78,6 +78,10 @@ export const constants = {
         }
     ],
     chains: [polygonMumbai, goerli],
+    subgraphChainNames: {
+        80001: "mumbai",
+        5: "goerli",
+    },
     transactionAlertTimeout: 5000
 } as const;
 
@@ -288,11 +292,12 @@ export function makeOpenSeaLink(address: string, tokenId: number) {
     return `https://testnets.opensea.io/assets/mumbai/${address}/${tokenId}`;
 }
 
-export function waitForGraphSync(minBlock: number) {
+export function waitForGraphSync(minBlock: number, chainId: ChainId) {
     return new Promise<void>((resolve, reject) => {
+        const graphSdk = getGraphSDK(chainId);
         async function check() {
-            const rentalAuctionResult: ExecutionResult<BlockNumberQuery> = await execute(BlockNumberDocument, {});
-            if (rentalAuctionResult.data?._meta?.block.number && rentalAuctionResult.data?._meta?.block.number >= minBlock) {
+            const result = await graphSdk.BlockNumber();
+            if (result._meta?.block.number && result._meta?.block.number >= minBlock) {
                 clearInterval(interval);
                 resolve();
             }
@@ -307,7 +312,7 @@ export async function waitForTxPromise(txPromise: Promise<ContractTransaction>, 
         setTransactionAlertStatus(TransactionAlertStatus.Pending);
         const tx = await txPromise;
         const receipt = await tx.wait();
-        if (waitForGraph) await waitForGraphSync(receipt.blockNumber);
+        if (waitForGraph) await waitForGraphSync(receipt.blockNumber, tx.chainId as ChainId);
         setTransactionAlertStatus(TransactionAlertStatus.Success);
         return receipt;
     }
@@ -315,4 +320,10 @@ export async function waitForTxPromise(txPromise: Promise<ContractTransaction>, 
         setTransactionAlertStatus(TransactionAlertStatus.Fail);
         throw e;
     }
+}
+
+export function getGraphSDK(chainId: ChainId) {
+    return getBuiltGraphSDK({
+        chainName: constants.subgraphChainNames[chainId]
+    });
 }

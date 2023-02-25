@@ -3,10 +3,10 @@ import { Framework, Operation, SuperToken } from "@superfluid-finance/sdk-core";
 import { BigNumber, BigNumberish, ethers, Signer } from "ethers";
 import { AbiCoder } from "ethers/lib/utils.js";
 import React from "react";
-import { useAccount, useSigner } from "wagmi";
+import { useAccount, useNetwork, useSigner } from "wagmi";
 import { MyContext, TransactionAlertStatus } from "../App";
 import { ContinuousRentalAuction, EnglishRentalAuction } from "../graph/.graphclient";
-import { cmpAddr, constants, currentTime, GenericRentalAuctionWithMetadata, prettyDuration, toFixedScientificNotation, waitForGraphSync, waitForTxPromise } from "../helpers";
+import { ChainId, cmpAddr, constants, currentTime, GenericRentalAuctionWithMetadata, prettyDuration, toFixedScientificNotation, waitForGraphSync, waitForTxPromise } from "../helpers";
 import { EnglishRentalAuction__factory } from "../types";
 import BidBar from "./BidBar";
 import FlowRateDisplay from "./FlowRateDisplay";
@@ -181,10 +181,8 @@ export function EnglishRentalAuctionInteractions(props: EnglishRentalAuctionInte
             userData: "0x"
         });
 
-        const tx = await op.exec(signer);
+        await waitForTxPromise(op.exec(signer), setTransactionAlertStatus);
 
-        const receipt = await tx.wait();
-        await waitForGraphSync(receipt.blockNumber);
         props.afterTransaction();
     }
 
@@ -197,10 +195,7 @@ export function EnglishRentalAuctionInteractions(props: EnglishRentalAuctionInte
             userData: "0x"
         });
 
-        const tx = await op.exec(signer);
-
-        const receipt = await tx.wait();
-        await waitForGraphSync(receipt.blockNumber);
+        await waitForTxPromise(op.exec(signer), setTransactionAlertStatus);
         props.afterTransaction();
     }
     

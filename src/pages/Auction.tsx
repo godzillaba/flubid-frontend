@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ContinuousRentalAuctionByAddressDocument, execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery, EnglishRentalAuctionsByAddressDocument, ContinuousRentalAuction, EnglishRentalAuction } from "../graph/.graphclient";
 import { BigNumber, ethers } from "ethers";
-import { addMetadataToGenericRentalAuctions, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem } from "../helpers";
+import { addMetadataToGenericRentalAuctions, ChainId, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getGraphSDK, getImageFromAuctionItem } from "../helpers";
 import { ExecutionResult } from "graphql";
 
 import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
@@ -25,6 +25,7 @@ export default function Auction() {
     const navigate = useNavigate();
 
     const { chain, chains } = useNetwork();
+    const chainId = chain!.id as ChainId;
     const { address } = useAccount();
     const provider = useProvider();
 
@@ -49,10 +50,11 @@ export default function Auction() {
         if (!auctionAddress || !address) return;
     
         try {
-            const rentalAuctionResult = await execute(RentalAuctionByAddressDocument, { address: auctionAddress }) as ExecutionResult<RentalAuctionByAddressQuery>;
-            if (!rentalAuctionResult.data) throw new Error("No data");
+            const graphSdk = getGraphSDK(chainId);
 
-            const auctions = await addMetadataToGenericRentalAuctions(rentalAuctionResult.data.genericRentalAuctions);
+            const rentalAuctionResult = await graphSdk.RentalAuctionByAddress({ address: auctionAddress });
+
+            const auctions = await addMetadataToGenericRentalAuctions(rentalAuctionResult.genericRentalAuctions);
             if (!auctions || !auctions[0]) return;
             const genericRentalAuction = auctions[0];
 
@@ -63,17 +65,17 @@ export default function Auction() {
 
             // set superfluid stuff
             const sf = await Framework.create({
-                chainId: chain?.id as number,
+                chainId,
                 provider,
             });
             const superToken = await sf.loadSuperToken(genericRentalAuction.acceptedToken);
 
             if (genericRentalAuction.type === "continuous") {
-                const result = await execute(ContinuousRentalAuctionByAddressDocument, { address: auctionAddress });
-                setContinuousRentalAuction(result.data.continuousRentalAuctions[0]);
+                const result = await graphSdk.ContinuousRentalAuctionByAddress({ address: auctionAddress });
+                setContinuousRentalAuction(result.continuousRentalAuctions[0]);
             } else if (genericRentalAuction.type === "english") {
-                const result = await execute(EnglishRentalAuctionsByAddressDocument, { address: auctionAddress });
-                setEnglishRentalAuction(result.data.englishRentalAuctions[0]);
+                const result = await graphSdk.EnglishRentalAuctionsByAddress({ address: auctionAddress });
+                setEnglishRentalAuction(result.englishRentalAuctions[0]);
             }
 
             setSuperToken(superToken);
@@ -84,7 +86,7 @@ export default function Auction() {
         catch (e) {
             console.error(e);
         }
-    }, [auctionAddress, chain?.id, refetchCounter, address]); // todo chain change
+    }, [auctionAddress, chainId, refetchCounter, address]); // todo chain change
 
     const fetchTokenBalancesAndSymbols = React.useCallback(async () => {
         if (!superToken || !address || !chain) return;
@@ -104,7 +106,7 @@ export default function Auction() {
         catch (e) {
             console.error(e);
         }
-    }, [address, superToken == null, chain?.id, refetchCounter]);
+    }, [address, superToken == null, chainId, refetchCounter]);
 
     React.useEffect(() => {
         fetchAuctionDataAndLoadSuperfluid();

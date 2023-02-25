@@ -1,9 +1,13 @@
 # .graphclientrc.yml
 sources:
-  - name: flubid-mumbai
+  - name: flubid
     handler:
       graphql:
-        endpoint: https://api.thegraph.com/subgraphs/name/godzillaba/flubid-mumbai
+        endpoint: https://api.thegraph.com/subgraphs/name/godzillaba/flubid-{context.chainName:mumbai}
+  # - name: flubid-goerli
+  #   handler:
+  #     graphql:
+  #       endpoint: https://api.thegraph.com/subgraphs/name/godzillaba/flubid-goerli
 
 documents:
   - ./queries.graphql

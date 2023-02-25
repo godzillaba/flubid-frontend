@@ -3,13 +3,13 @@ import { ContractTransaction, ethers } from 'ethers';
 import { ExecutionResult } from 'graphql';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAccount, useProvider, useSigner } from 'wagmi';
+import { useAccount, useNetwork, useProvider, useSigner } from 'wagmi';
 import { MyContext, TransactionAlertStatus } from '../App';
 import { ContinuousRentalAuctionInfo } from '../components/ContinuousRentalAuctionInfo';
 import { EnglishRentalAuctionInfo } from '../components/EnglishRentalAuctionInfo';
 import PageSpinner from '../components/PageSpinner';
-import { EnglishRentalAuction, EnglishRentalAuctionsByAddressDocument, EnglishRentalAuctionsByAddressQuery, execute, RentalAuctionByAddressDocument, RentalAuctionByAddressQuery } from '../graph/.graphclient';
-import { addMetadataToGenericRentalAuctions, cmpAddr, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getImageFromAuctionItem, waitForGraphSync, waitForTxPromise } from '../helpers';
+import { EnglishRentalAuction } from '../graph/.graphclient';
+import { addMetadataToGenericRentalAuctions, ChainId, cmpAddr, constants, fixIpfsUri, GenericRentalAuctionWithMetadata, getGraphSDK, getImageFromAuctionItem, waitForGraphSync, waitForTxPromise } from '../helpers';
 
 // we want this to look like the auction page, but with the ability to edit the auction
 // there are really only 2 things that can be edited: the ownership of the controller and starting/stopping the auction
@@ -17,15 +17,19 @@ import { addMetadataToGenericRentalAuctions, cmpAddr, constants, fixIpfsUri, Gen
 
 export default function ManageAuction() {
     const { auctionAddress } = useParams();
+
+    const {address} = useAccount();
+    const {chain} = useNetwork();
+    const chainId = chain!.id as ChainId;
+    const provider = useProvider();
+    const { data: signer, isError, isLoading } = useSigner();
+    
     const navigate = useNavigate();
     const theme = useTheme();
     const cardStyle = {
         padding: theme.spacing(2),
     };
 
-    const {address} = useAccount();
-    const provider = useProvider();
-    const { data: signer, isError, isLoading } = useSigner();
 
     const { setTransactionAlertStatus } = React.useContext(MyContext);
 
@@ -41,12 +45,14 @@ export default function ManageAuction() {
     // get auction data
     const fetchAuctionData = React.useCallback(async () => {
         if (!auctionAddress) return;
-        const rentalAuctionResult = await execute(RentalAuctionByAddressDocument, { address: auctionAddress }) as ExecutionResult<RentalAuctionByAddressQuery>;
-        if (!rentalAuctionResult.data) throw new Error('failed to fetch auction data');
+        
+        const graphSdk = getGraphSDK(chainId);
 
-        const auctions = await addMetadataToGenericRentalAuctions(rentalAuctionResult.data.genericRentalAuctions);
+        const rentalAuctionResult = await graphSdk.RentalAuctionByAddress({ address: auctionAddress });
 
-        if (!auctions || !auctions.length) return;
+        const auctions = await addMetadataToGenericRentalAuctions(rentalAuctionResult.genericRentalAuctions);
+
+        if (!auctions.length) return;
 
         const auction = auctions[0];
 
@@ -54,8 +60,8 @@ export default function ManageAuction() {
 
         let englishRentalAuction;
         if (auction.type === 'english') {
-            const result = await execute(EnglishRentalAuctionsByAddressDocument, { address: auctionAddress }) as ExecutionResult<EnglishRentalAuctionsByAddressQuery>;
-            englishRentalAuction = result.data?.englishRentalAuctions[0];
+            const result = await graphSdk.EnglishRentalAuctionsByAddress({ address: auctionAddress });
+            englishRentalAuction = result.englishRentalAuctions[0];
         }
 
         try {
