@@ -7,7 +7,7 @@ import { ContractTransaction, ethers } from 'ethers';
 import { AbiCoder } from 'ethers/lib/utils.js';
 import { useNavigate } from 'react-router-dom';
 import DurationInput from '../components/DurationInput';
-import { ContinuousRentalAuctionFactory__factory, EnglishRentalAuctionFactory, EnglishRentalAuctionFactory__factory } from '../types/ethers-contracts';
+import { ContinuousRentalAuctionFactory__factory, EnglishRentalAuctionFactory, EnglishRentalAuctionFactory__factory } from '../types';
 import { MyContext, TransactionAlertStatus } from '../App';
 
 function reducer(state: Inputs, update: InputsUpdate) {
@@ -18,7 +18,6 @@ type Inputs = {
   auctionType: string,
   acceptedToken: string, // todo multichain
   reserveRate: string,
-  beneficiary: string,
   minimumBidFactor: string,
 
   // english specific inputs
@@ -54,7 +53,6 @@ export default function CreateAuction() {
     auctionType: 'continuous',
     acceptedToken: 'MATICx',
     reserveRate: '0',
-    beneficiary: address || constants.zeroAddress,
     minimumBidFactor: '1.05',
 
     // english specific inputs
@@ -88,7 +86,6 @@ export default function CreateAuction() {
     const deployTxPromise = factoryContract.create(
       getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
       getControllerByName(inputs.controllerObserverImplementation as ControllerName).implementation,
-      inputs.beneficiary,
       ethers.BigNumber.from(Math.floor(Number(inputs.minimumBidFactor) * 1e18) + ''),
       ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
       new AbiCoder().encode(['address', 'uint256'], [ethers.utils.getAddress(inputs.underlyingTokenAddress), inputs.underlyingTokenID])
@@ -118,7 +115,6 @@ export default function CreateAuction() {
     const deployTxPromise = factoryContract.create({
       acceptedToken: getSuperTokenAddressFromSymbol('polygonMumbai', inputs.acceptedToken),
       controllerObserverImplementation: getControllerByName(inputs.controllerObserverImplementation as ControllerName).implementation,
-      beneficiary: inputs.beneficiary,
       minimumBidFactorWad: ethers.BigNumber.from(Math.floor(Number(inputs.minimumBidFactor) * 1e18) + ''),
       reserveRate: ethers.BigNumber.from(Math.floor(Number(inputs.reserveRate) * 1e18) + ''),
       minRentalDuration: ethers.BigNumber.from(Math.floor(Number(inputs.minRentalDuration)) + ''),
@@ -197,15 +193,6 @@ export default function CreateAuction() {
           <MenuItem key={1} value="MATICx">MATICx</MenuItem>
           <MenuItem key={2} value="DAIx">DAIx</MenuItem>
         </TextField> <br/>
-
-        <TextField 
-          label="Beneficiary Address" 
-          variant='outlined'
-          name="beneficiary"
-          value={inputs.beneficiary}
-          onChange={handleInputChange}
-        /> 
-        <br/>
 
         <TextField 
           label="Minimum Bid Factor" 

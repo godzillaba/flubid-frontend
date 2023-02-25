@@ -37,7 +37,7 @@
     "test": "yarn run buildgraphclient && react-scripts test",
     "eject": "yarn run buildgraphclient && react-scripts eject",
     "buildgraphclient": "graphclient build --dir ./src/graph",
-    "typechain": "typechain --target=ethers-v5 --out-dir ./src/types ./src/abi/*"
+    "typechain": "rm -rf ./src/types && typechain --target=ethers-v5 --out-dir ./src/types ./src/abi/*"
   },
   "eslintConfig": {
     "extends": [

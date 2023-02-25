@@ -15,8 +15,8 @@ const auctionTypesReadable: {[key: string]: string} = {
 type Network = "polygonMumbai";
 
 export const constants = {
-    continuousRentalAuctionFactory: '0x68757A4b7E9B295c0F80f3a9D5d2e28E0427Bd33',
-    englishRentalAuctionFactory: '0x49906452839Ca14Ba7B51e8c3159183809EabACC',
+    continuousRentalAuctionFactory: '0xaB0d45639Bc816ff79A02B73a81bb6fc1d6678A1',
+    englishRentalAuctionFactory: '0xD3345F3924789Da02645607C9B07f68836292361',
     zeroAddress: "0x0000000000000000000000000000000000000000",
     graphPollingInterval: 2000,
     abis: {

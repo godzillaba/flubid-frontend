@@ -4,12 +4,17 @@
       "inputs": [
         {
           "internalType": "contract IRentalAuction",
-          "name": "rentalAuction",
+          "name": "_rentalAuction",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_owner",
           "type": "address"
         },
         {
           "internalType": "bytes",
-          "name": "auxData",
+          "name": "_extraArgs",
           "type": "bytes"
         }
       ],
@@ -30,32 +35,6 @@
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "underlyingTokenContract",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "underlyingTokenID",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
     }
   ],
   "bytecode": {
@@ -69,12 +48,10 @@
     "linkReferences": {}
   },
   "methodIdentifiers": {
-    "initialize(address,bytes)": "d1f57894",
-    "onRenterChanged(address)": "1ff0045b",
-    "underlyingTokenContract()": "55f84309",
-    "underlyingTokenID()": "082f2cb1"
+    "initialize(address,address,bytes)": "cf7a1d77",
+    "onRenterChanged(address)": "1ff0045b"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.16+commit.07a7930e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"contract IRentalAuction\",\"name\":\"rentalAuction\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"auxData\",\"type\":\"bytes\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newRenter\",\"type\":\"address\"}],\"name\":\"onRenterChanged\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"underlyingTokenContract\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"underlyingTokenID\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/interfaces/IRentalAuctionControllerObserver.sol\":\"IRentalAuctionControllerObserver\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@openzeppelin/=lib/openzeppelin-contracts/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":ens-contracts/=lib/ens-contracts/contracts/\",\":erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/\",\":ethereum-contracts/=lib/ethereum-contracts/\",\":forge-std/=lib/forge-std/src/\",\":openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/\",\":openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/\",\":superfluid-finance/=lib/ethereum-contracts/packages/ethereum-contracts/\"]},\"sources\":{\"src/interfaces/IRentalAuction.sol\":{\"keccak256\":\"0xaca9a752b2c4c66e49d2ff5fcbbcfd26c62ffdff0c21720b5dc68bae34c53f03\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://3c65f7783479ec82d4ace9200589c69d532dafaf153dff24b6f4151b269cd867\",\"dweb:/ipfs/QmeqGUM4MXpkrCRFdjfcyLyChL63CUMTJRmA7C1ggaJ2WY\"]},\"src/interfaces/IRentalAuctionControllerObserver.sol\":{\"keccak256\":\"0xe0bc82d67b06b23430765c1630561c7d26db4a470a64acd188f3b0826eb2c7dd\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://76a69276152d1752da94482ef7cb6d4a85c4b2e9086e29fe11edbc82a70558f9\",\"dweb:/ipfs/QmahaG6DYgvCb7oBk3r9V743YrL8gDxDDxk7nvcdRSSe9Y\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.16+commit.07a7930e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"contract IRentalAuction\",\"name\":\"_rentalAuction\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_extraArgs\",\"type\":\"bytes\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newRenter\",\"type\":\"address\"}],\"name\":\"onRenterChanged\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"initialize(address,address,bytes)\":{\"params\":{\"_extraArgs\":\"ABI encoded additional arguments for the controller\",\"_owner\":\"The owner of this controller contract\",\"_rentalAuction\":\"The rental auction contract that this controller is attached to\"}},\"onRenterChanged(address)\":{\"details\":\"THIS FUNCTION MUST NOT REVERT IF CALLED BY THE RENTAL AUCTION CONTRACT This function must not introduce potential reentrancy.\",\"params\":{\"newRenter\":\"The new renter\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"initialize(address,address,bytes)\":{\"notice\":\"Initializes the controller contract.\"},\"onRenterChanged(address)\":{\"notice\":\"Called by the rental auction contract when the renter has changed.\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/interfaces/IRentalAuctionControllerObserver.sol\":\"IRentalAuctionControllerObserver\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@openzeppelin/=lib/openzeppelin-contracts/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":forge-std/=lib/forge-std/src/\",\":openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/\",\":openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/\",\":superfluid-finance/=lib/superfluid-finance/packages/ethereum-contracts/\"]},\"sources\":{\"src/interfaces/IRentalAuction.sol\":{\"keccak256\":\"0x59238d50f15748c3bac5b5f72daf3cf9217f4c23fc1e74c0a61cdf8cd369cfb3\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://653d8372e631d9d9aaa5d4b4c8d44ebfde4d990eadcbd1ad3fdb8cfd69d7af61\",\"dweb:/ipfs/QmXNsjRXHFSmNRmrwEQbXGAKRwGKn62bxiXEg4yzMJ1TvB\"]},\"src/interfaces/IRentalAuctionControllerObserver.sol\":{\"keccak256\":\"0xa3d584d6f20fa43d4b42667560664883deabcb8ef59d13c1f175b70cdf52d8e5\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://86bc391379877a7190b6f5761fc3282585e486d88c53dab19366f0271651a3c1\",\"dweb:/ipfs/QmXkeVDJPoBpEU113sAUa8WHMK1LnSuuXnk6xUSQgz3ZUt\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.8.16+commit.07a7930e"
@@ -86,12 +63,17 @@
           "inputs": [
             {
               "internalType": "contract IRentalAuction",
-              "name": "rentalAuction",
+              "name": "_rentalAuction",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_owner",
               "type": "address"
             },
             {
               "internalType": "bytes",
-              "name": "auxData",
+              "name": "_extraArgs",
               "type": "bytes"
             }
           ],
@@ -110,42 +92,37 @@
           "stateMutability": "nonpayable",
           "type": "function",
           "name": "onRenterChanged"
-        },
-        {
-          "inputs": [],
-          "stateMutability": "view",
-          "type": "function",
-          "name": "underlyingTokenContract",
-          "outputs": [
-            {
-              "internalType": "address",
-              "name": "",
-              "type": "address"
-            }
-          ]
-        },
-        {
-          "inputs": [],
-          "stateMutability": "view",
-          "type": "function",
-          "name": "underlyingTokenID",
-          "outputs": [
-            {
-              "internalType": "uint256",
-              "name": "",
-              "type": "uint256"
-            }
-          ]
         }
       ],
       "devdoc": {
         "kind": "dev",
-        "methods": {},
+        "methods": {
+          "initialize(address,address,bytes)": {
+            "params": {
+              "_extraArgs": "ABI encoded additional arguments for the controller",
+              "_owner": "The owner of this controller contract",
+              "_rentalAuction": "The rental auction contract that this controller is attached to"
+            }
+          },
+          "onRenterChanged(address)": {
+            "details": "THIS FUNCTION MUST NOT REVERT IF CALLED BY THE RENTAL AUCTION CONTRACT This function must not introduce potential reentrancy.",
+            "params": {
+              "newRenter": "The new renter"
+            }
+          }
+        },
         "version": 1
       },
       "userdoc": {
         "kind": "user",
-        "methods": {},
+        "methods": {
+          "initialize(address,address,bytes)": {
+            "notice": "Initializes the controller contract."
+          },
+          "onRenterChanged(address)": {
+            "notice": "Called by the rental auction contract when the renter has changed."
+          }
+        },
         "version": 1
       }
     },
@@ -153,13 +130,10 @@
       "remappings": [
         ":@openzeppelin/=lib/openzeppelin-contracts/",
         ":ds-test/=lib/forge-std/lib/ds-test/src/",
-        ":ens-contracts/=lib/ens-contracts/contracts/",
-        ":erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
-        ":ethereum-contracts/=lib/ethereum-contracts/",
         ":forge-std/=lib/forge-std/src/",
         ":openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
         ":openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/",
-        ":superfluid-finance/=lib/ethereum-contracts/packages/ethereum-contracts/"
+        ":superfluid-finance/=lib/superfluid-finance/packages/ethereum-contracts/"
       ],
       "optimizer": {
         "enabled": true,
@@ -175,18 +149,18 @@
     },
     "sources": {
       "src/interfaces/IRentalAuction.sol": {
-        "keccak256": "0xaca9a752b2c4c66e49d2ff5fcbbcfd26c62ffdff0c21720b5dc68bae34c53f03",
+        "keccak256": "0x59238d50f15748c3bac5b5f72daf3cf9217f4c23fc1e74c0a61cdf8cd369cfb3",
         "urls": [
-          "bzz-raw://3c65f7783479ec82d4ace9200589c69d532dafaf153dff24b6f4151b269cd867",
-          "dweb:/ipfs/QmeqGUM4MXpkrCRFdjfcyLyChL63CUMTJRmA7C1ggaJ2WY"
+          "bzz-raw://653d8372e631d9d9aaa5d4b4c8d44ebfde4d990eadcbd1ad3fdb8cfd69d7af61",
+          "dweb:/ipfs/QmXNsjRXHFSmNRmrwEQbXGAKRwGKn62bxiXEg4yzMJ1TvB"
         ],
         "license": "UNLICENSED"
       },
       "src/interfaces/IRentalAuctionControllerObserver.sol": {
-        "keccak256": "0xe0bc82d67b06b23430765c1630561c7d26db4a470a64acd188f3b0826eb2c7dd",
+        "keccak256": "0xa3d584d6f20fa43d4b42667560664883deabcb8ef59d13c1f175b70cdf52d8e5",
         "urls": [
-          "bzz-raw://76a69276152d1752da94482ef7cb6d4a85c4b2e9086e29fe11edbc82a70558f9",
-          "dweb:/ipfs/QmahaG6DYgvCb7oBk3r9V743YrL8gDxDDxk7nvcdRSSe9Y"
+          "bzz-raw://86bc391379877a7190b6f5761fc3282585e486d88c53dab19366f0271651a3c1",
+          "dweb:/ipfs/QmXkeVDJPoBpEU113sAUa8WHMK1LnSuuXnk6xUSQgz3ZUt"
         ],
         "license": "UNLICENSED"
       }
@@ -195,22 +169,23 @@
   },
   "ast": {
     "absolutePath": "src/interfaces/IRentalAuctionControllerObserver.sol",
-    "id": 64960,
+    "id": 65435,
     "exportedSymbols": {
       "IRentalAuction": [
-        64931
+        65412
       ],
       "IRentalAuctionControllerObserver": [
-        64959
+        65434
       ]
     },
     "nodeType": "SourceUnit",
-    "src": "39:547:120",
+    "src": "39:850:124",
     "nodes": [
       {
-        "id": 64933,
+        "id": 65414,
         "nodeType": "PragmaDirective",
-        "src": "39:24:120",
+        "src": "39:24:124",
+        "nodes": [],
         "literals": [
           "solidity",
           "^",
@@ -219,23 +194,24 @@
         ]
       },
       {
-        "id": 64935,
+        "id": 65416,
         "nodeType": "ImportDirective",
-        "src": "65:54:120",
+        "src": "65:54:124",
+        "nodes": [],
         "absolutePath": "src/interfaces/IRentalAuction.sol",
         "file": "./IRentalAuction.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 64960,
-        "sourceUnit": 64932,
+        "scope": 65435,
+        "sourceUnit": 65413,
         "symbolAliases": [
           {
             "foreign": {
-              "id": 64934,
+              "id": 65415,
               "name": "IRentalAuction",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
-              "referencedDeclaration": 64931,
-              "src": "74:14:120",
+              "referencedDeclaration": 65412,
+              "src": "74:14:124",
               "typeDescriptions": {}
             },
             "nameLocation": "-1:-1:-1"
@@ -244,56 +220,63 @@
         "unitAlias": ""
       },
       {
-        "id": 64959,
+        "id": 65434,
         "nodeType": "ContractDefinition",
-        "src": "121:465:120",
+        "src": "121:768:124",
         "nodes": [
           {
-            "id": 64943,
+            "id": 65427,
             "nodeType": "FunctionDefinition",
-            "src": "170:83:120",
-            "functionSelector": "d1f57894",
+            "src": "455:103:124",
+            "nodes": [],
+            "documentation": {
+              "id": 65417,
+              "nodeType": "StructuredDocumentation",
+              "src": "170:280:124",
+              "text": "@notice Initializes the controller contract.\n @param _rentalAuction The rental auction contract that this controller is attached to\n @param _owner The owner of this controller contract\n @param _extraArgs ABI encoded additional arguments for the controller"
+            },
+            "functionSelector": "cf7a1d77",
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "initialize",
-            "nameLocation": "179:10:120",
+            "nameLocation": "464:10:124",
             "parameters": {
-              "id": 64941,
+              "id": 65425,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 64938,
+                  "id": 65420,
                   "mutability": "mutable",
-                  "name": "rentalAuction",
-                  "nameLocation": "205:13:120",
+                  "name": "_rentalAuction",
+                  "nameLocation": "490:14:124",
                   "nodeType": "VariableDeclaration",
-                  "scope": 64943,
-                  "src": "190:28:120",
+                  "scope": 65427,
+                  "src": "475:29:124",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_contract$_IRentalAuction_$64931",
+                    "typeIdentifier": "t_contract$_IRentalAuction_$65412",
                     "typeString": "contract IRentalAuction"
                   },
                   "typeName": {
-                    "id": 64937,
+                    "id": 65419,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 64936,
+                      "id": 65418,
                       "name": "IRentalAuction",
                       "nameLocations": [
-                        "190:14:120"
+                        "475:14:124"
                       ],
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 64931,
-                      "src": "190:14:120"
+                      "referencedDeclaration": 65412,
+                      "src": "475:14:124"
                     },
-                    "referencedDeclaration": 64931,
-                    "src": "190:14:120",
+                    "referencedDeclaration": 65412,
+                    "src": "475:14:124",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IRentalAuction_$64931",
+                      "typeIdentifier": "t_contract$_IRentalAuction_$65412",
                       "typeString": "contract IRentalAuction"
                     }
                   },
@@ -301,13 +284,41 @@
                 },
                 {
                   "constant": false,
-                  "id": 64940,
+                  "id": 65422,
                   "mutability": "mutable",
-                  "name": "auxData",
-                  "nameLocation": "235:7:120",
+                  "name": "_owner",
+                  "nameLocation": "514:6:124",
                   "nodeType": "VariableDeclaration",
-                  "scope": 64943,
-                  "src": "220:22:120",
+                  "scope": 65427,
+                  "src": "506:14:124",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 65421,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "506:7:124",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 65424,
+                  "mutability": "mutable",
+                  "name": "_extraArgs",
+                  "nameLocation": "537:10:124",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 65427,
+                  "src": "522:25:124",
                   "stateVariable": false,
                   "storageLocation": "calldata",
                   "typeDescriptions": {
@@ -315,10 +326,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 64939,
+                    "id": 65423,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "220:5:120",
+                    "src": "522:5:124",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -327,42 +338,49 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "189:54:120"
+              "src": "474:74:124"
             },
             "returnParameters": {
-              "id": 64942,
+              "id": 65426,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "252:0:120"
+              "src": "557:0:124"
             },
-            "scope": 64959,
+            "scope": 65434,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 64948,
+            "id": 65433,
             "nodeType": "FunctionDefinition",
-            "src": "258:53:120",
+            "src": "834:53:124",
+            "nodes": [],
+            "documentation": {
+              "id": 65428,
+              "nodeType": "StructuredDocumentation",
+              "src": "564:265:124",
+              "text": "@notice Called by the rental auction contract when the renter has changed.\n @dev THIS FUNCTION MUST NOT REVERT IF CALLED BY THE RENTAL AUCTION CONTRACT\n This function must not introduce potential reentrancy.\n @param newRenter The new renter"
+            },
             "functionSelector": "1ff0045b",
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "onRenterChanged",
-            "nameLocation": "267:15:120",
+            "nameLocation": "843:15:124",
             "parameters": {
-              "id": 64946,
+              "id": 65431,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 64945,
+                  "id": 65430,
                   "mutability": "mutable",
                   "name": "newRenter",
-                  "nameLocation": "291:9:120",
+                  "nameLocation": "867:9:124",
                   "nodeType": "VariableDeclaration",
-                  "scope": 64948,
-                  "src": "283:17:120",
+                  "scope": 65433,
+                  "src": "859:17:124",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -370,10 +388,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 64944,
+                    "id": 65429,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "283:7:120",
+                    "src": "859:7:124",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -383,127 +401,16 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "282:19:120"
+              "src": "858:19:124"
             },
             "returnParameters": {
-              "id": 64947,
+              "id": 65432,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "310:0:120"
+              "src": "886:0:124"
             },
-            "scope": 64959,
+            "scope": 65434,
             "stateMutability": "nonpayable",
-            "virtual": false,
-            "visibility": "external"
-          },
-          {
-            "id": 64953,
-            "nodeType": "FunctionDefinition",
-            "src": "451:67:120",
-            "functionSelector": "55f84309",
-            "implemented": false,
-            "kind": "function",
-            "modifiers": [],
-            "name": "underlyingTokenContract",
-            "nameLocation": "460:23:120",
-            "parameters": {
-              "id": 64949,
-              "nodeType": "ParameterList",
-              "parameters": [],
-              "src": "483:2:120"
-            },
-            "returnParameters": {
-              "id": 64952,
-              "nodeType": "ParameterList",
-              "parameters": [
-                {
-                  "constant": false,
-                  "id": 64951,
-                  "mutability": "mutable",
-                  "name": "",
-                  "nameLocation": "-1:-1:-1",
-                  "nodeType": "VariableDeclaration",
-                  "scope": 64953,
-                  "src": "509:7:120",
-                  "stateVariable": false,
-                  "storageLocation": "default",
-                  "typeDescriptions": {
-                    "typeIdentifier": "t_address",
-                    "typeString": "address"
-                  },
-                  "typeName": {
-                    "id": 64950,
-                    "name": "address",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "509:7:120",
-                    "stateMutability": "nonpayable",
-                    "typeDescriptions": {
-                      "typeIdentifier": "t_address",
-                      "typeString": "address"
-                    }
-                  },
-                  "visibility": "internal"
-                }
-              ],
-              "src": "508:9:120"
-            },
-            "scope": 64959,
-            "stateMutability": "view",
-            "virtual": false,
-            "visibility": "external"
-          },
-          {
-            "id": 64958,
-            "nodeType": "FunctionDefinition",
-            "src": "523:61:120",
-            "functionSelector": "082f2cb1",
-            "implemented": false,
-            "kind": "function",
-            "modifiers": [],
-            "name": "underlyingTokenID",
-            "nameLocation": "532:17:120",
-            "parameters": {
-              "id": 64954,
-              "nodeType": "ParameterList",
-              "parameters": [],
-              "src": "549:2:120"
-            },
-            "returnParameters": {
-              "id": 64957,
-              "nodeType": "ParameterList",
-              "parameters": [
-                {
-                  "constant": false,
-                  "id": 64956,
-                  "mutability": "mutable",
-                  "name": "",
-                  "nameLocation": "-1:-1:-1",
-                  "nodeType": "VariableDeclaration",
-                  "scope": 64958,
-                  "src": "575:7:120",
-                  "stateVariable": false,
-                  "storageLocation": "default",
-                  "typeDescriptions": {
-                    "typeIdentifier": "t_uint256",
-                    "typeString": "uint256"
-                  },
-                  "typeName": {
-                    "id": 64955,
-                    "name": "uint256",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "575:7:120",
-                    "typeDescriptions": {
-                      "typeIdentifier": "t_uint256",
-                      "typeString": "uint256"
-                    }
-                  },
-                  "visibility": "internal"
-                }
-              ],
-              "src": "574:9:120"
-            },
-            "scope": 64959,
-            "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
@@ -515,15 +422,15 @@
         "contractKind": "interface",
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          64959
+          65434
         ],
         "name": "IRentalAuctionControllerObserver",
-        "nameLocation": "131:32:120",
-        "scope": 64960,
+        "nameLocation": "131:32:124",
+        "scope": 65435,
         "usedErrors": []
       }
     ],
     "license": "UNLICENSED"
   },
-  "id": 120
+  "id": 124
 }
