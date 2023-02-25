@@ -16,6 +16,7 @@ export default function TopBar() {
           <Button color="inherit" onClick={() => navigate("/")}>Explore</Button>
           <Button color="inherit" onClick={() => navigate("/my-auctions")}>My Auctions</Button>
           <Button color="inherit" onClick={() => navigate("/create-auction")}>Create Auction</Button>
+          <Button color="inherit">Documentation</Button>
         </div>
         <NetworkSelect></NetworkSelect>
         <ConnectWalletButton></ConnectWalletButton>

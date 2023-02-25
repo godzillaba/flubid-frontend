@@ -31,7 +31,6 @@ export function EnglishRentalAuctionInfo(props: EnglishRentalAuctionInfoProps) {
             <p>Auction Owner: {ethers.utils.getAddress(props.genericRentalAuction.controllerObserver.owner)}</p>
             <p>Beneficiary: {ethers.utils.getAddress(props.genericRentalAuction.beneficiary)}</p>
             
-            {/* todo: nice duration display. go from year to second, first one that is > 1 use that as time unit */}
             <p>Minimum Rental Duration: {prettyDuration(props.englishRentalAuction.minRentalDuration)}</p>
             <p>Maximum Rental Duration: {prettyDuration(props.englishRentalAuction.maxRentalDuration)}</p>
             <p>Bidding Phase Duration: {prettyDuration(props.englishRentalAuction.biddingPhaseDuration)}</p>

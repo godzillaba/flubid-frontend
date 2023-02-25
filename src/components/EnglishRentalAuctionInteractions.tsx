@@ -147,6 +147,17 @@ export function EnglishRentalAuctionInteractions(props: EnglishRentalAuctionInte
         }
     }
 
+    async function cancelLease() {
+        if (!signer || !address) throw new Error("Signer or address undefined");
+        const flowOp = props.superToken.deleteFlow({
+            sender: address,
+            receiver: props.genericRentalAuction?.address
+        });
+
+        await waitForTxPromise(flowOp.exec(signer), setTransactionAlertStatus);
+        props.afterTransaction();
+    }
+
     async function transitionToRentalPhase() {
         if (!signer || !address) throw new Error("Signer or address undefined");
         const auctionContract = EnglishRentalAuction__factory.connect(props.genericRentalAuction.address, signer);
@@ -265,7 +276,7 @@ export function EnglishRentalAuctionInteractions(props: EnglishRentalAuctionInte
                                     fullWidth
                                     variant="outlined"
                                     color="error"
-                                    onClick={() => {throw new Error("todo")}}
+                                    onClick={cancelLease}
                                 >
                                     Cancel Lease
                                 </Button>
