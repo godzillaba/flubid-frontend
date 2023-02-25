@@ -165,7 +165,7 @@ export default function CreateAuction() {
       throw e;
     }
 
-    navigate(`/manage-auction/${auctionAddress}`);
+    navigate(`/manage-auction/${chainId}/${auctionAddress}`);
   }
 
   // if (inputs.controllerObserverImplementation === 'Lens Protocol') {

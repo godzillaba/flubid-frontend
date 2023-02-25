@@ -42,6 +42,7 @@ export default function Explore() {
   const sdk = getGraphSDK(chainId);
 
   useEffect(() => {
+    setAuctions([]);
     sdk.RentalAuctions().then((result) => {
       setAuctions(result.genericRentalAuctions);
     }).catch((err) => {

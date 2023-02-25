@@ -15,7 +15,7 @@ import { ContinuousRentalAuctionInteractions } from "../components/ContinuousRen
 import { EnglishRentalAuctionInteractions } from "../components/EnglishRentalAuctionInteractions";
 
 export default function Auction() {
-    const { auctionAddress } = useParams();
+    const { auctionAddress, auctionChainId } = useParams();
 
     const theme = useTheme();
     const cardStyle = {
@@ -61,7 +61,7 @@ export default function Auction() {
             const genericRentalAuction = auctions[0];
 
             if (cmpAddr(genericRentalAuction.controllerObserver.owner, address)) {
-                navigate("/manage-auction/" + auctionAddress);
+                navigate(`/manage-auction/${auctionChainId}/${auctionAddress}`);
                 return;
             }
 
@@ -117,6 +117,14 @@ export default function Auction() {
     React.useEffect(() => {
         fetchTokenBalancesAndSymbols();
     }, [fetchTokenBalancesAndSymbols]);
+
+    if (chainId != parseInt(auctionChainId!)) {
+        console.log(auctionChainId)
+        // return centered h1 with text "wrong network"
+        return (<h1 style={{ textAlign: "center" }}>
+            Wrong network, switch to {constants.subgraphChainNames[parseInt(auctionChainId!) as ChainId]}
+        </h1>);
+    }
     
     if (!genericRentalAuction || !superfluid || !superToken || !superTokenSymbol || !underlyingTokenSymbol) {
         return (<PageSpinner/>);

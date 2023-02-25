@@ -30,8 +30,10 @@ function ExploreAuctionInfoCard(props: ExploreAuctionInfoCardProps) {
     const flowRate = Number(props.auctionItem.topBid || 0) / 1e18;
     const auctionType = props.auctionItem.type === 'english' ? 'English Rental Auction' : 'Continuous Rental Auction';
 
+    const url = `/auction/${chainId}/${props.auctionItem.address}`;
+
     return (
-        <Card style={{ padding: theme.spacing(2), cursor: "pointer" }} variant="outlined" onClick={() => navigate('/auction/' + props.auctionItem.address)}>
+        <Card style={{ padding: theme.spacing(2), cursor: "pointer" }} variant="outlined" onClick={() => navigate(url)}>
             <img src={fixIpfsUri(image)} style={{ width: '100%' }} />
 
             <p>{props.auctionItem.controllerObserver.underlyingTokenName}</p>

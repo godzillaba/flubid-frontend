@@ -97,8 +97,8 @@ function App() {
                   <Route path="/" element={<Explore/>}/>
                   <Route path="/my-auctions" element={<MyAuctions/>}/>
                   <Route path="/create-auction" element={<CreateAuction/>}/>
-                  <Route path="/manage-auction/:auctionAddress" element={<ManageAuction/>}/>
-                  <Route path="/auction/:auctionAddress" element={<Auction/>}/>
+                  <Route path="/manage-auction/:auctionChainId/:auctionAddress" element={<ManageAuction/>}/>
+                  <Route path="/auction/:auctionChainId/:auctionAddress" element={<Auction/>}/>
                 </Routes>
               : <p>Please connect wallet and connect to a supported network.</p>
             }

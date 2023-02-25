@@ -16,7 +16,7 @@ import { addMetadataToGenericRentalAuctions, ChainId, cmpAddr, constants, fixIpf
 
 
 export default function ManageAuction() {
-    const { auctionAddress } = useParams();
+    const { auctionAddress, auctionChainId } = useParams();
 
     const {address} = useAccount();
     const {chain} = useNetwork();
@@ -101,7 +101,7 @@ export default function ManageAuction() {
 
         await waitForTxPromise(txPromise, setTransactionAlertStatus);
         
-        navigate('/auction/' + auctionAddress);
+        navigate(`/auction/${auctionChainId}/${auctionAddress}`);
     }
 
     async function handleStartAuction() {
@@ -165,10 +165,18 @@ export default function ManageAuction() {
         });
     }
 
+    if (chainId != parseInt(auctionChainId!)) {
+        console.log(auctionChainId)
+        // return centered h1 with text "wrong network"
+        return (<h1 style={{ textAlign: "center" }}>
+            Wrong network, switch to {constants.subgraphChainNames[parseInt(auctionChainId!) as ChainId]}
+        </h1>);
+    }
+
     if (!genericRentalAuction || !image || !address) return <PageSpinner/>
 
     if (!cmpAddr(genericRentalAuction.controllerObserver.owner, address)) {
-        navigate('/auction/' + auctionAddress);
+        navigate(`/auction/${auctionChainId}/${auctionAddress}`);
         return <></>;
     }
 
