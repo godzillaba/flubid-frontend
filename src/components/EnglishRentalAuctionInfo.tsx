@@ -24,7 +24,7 @@ export function EnglishRentalAuctionInfo(props: EnglishRentalAuctionInfoProps) {
         <>
             <h1 style={{ marginTop: 0 }}>{props.genericRentalAuction.controllerObserver.underlyingTokenName} #{props.genericRentalAuction.controllerObserver.underlyingTokenID}</h1>
             <sub>
-                <a href={makeOpenSeaLink(props.genericRentalAuction.controllerObserver.underlyingTokenContract, props.genericRentalAuction.controllerObserver.underlyingTokenID)}>View on OpenSea</a>
+                <a href={makeOpenSeaLink(props.genericRentalAuction.controllerObserver.underlyingTokenContract, props.genericRentalAuction.controllerObserver.underlyingTokenID, chainId)}>View on OpenSea</a>
             </sub>
             {/* <h2 style={{ marginTop: 0 }}>Auction Information</h2> */}
             <p>Currency: {superTokenSymbol}</p>
@@ -58,8 +58,9 @@ export function EnglishRentalAuctionInfo(props: EnglishRentalAuctionInfoProps) {
                 if (props.englishRentalAuction.isBiddingPhase) {
                     return (
                         <>
-                            <p>Top Bidder: {cmpAddr(props.englishRentalAuction.topBidder, address || '') ? "YOU" : ethers.utils.getAddress(props.englishRentalAuction.topBidder)}</p>
+                            <p>Reserve Rate: <FlowRateDisplay flowRate={props.genericRentalAuction.reserveRate / 1e18} currency={superTokenSymbol}/></p>
                             <p>Top Bid: <FlowRateDisplay flowRate={props.genericRentalAuction.topBid / 1e18} currency={superTokenSymbol}/></p>
+                            <p>Top Bidder: {cmpAddr(props.englishRentalAuction.topBidder, address || '') ? "YOU" : ethers.utils.getAddress(props.englishRentalAuction.topBidder)}</p>
                         </>
                     )
                 }

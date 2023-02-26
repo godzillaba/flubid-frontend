@@ -2,7 +2,7 @@ import { FormControl, MenuItem, Container, TextField, useTheme, Button, Stack } 
 import React, { Reducer } from 'react';
 import { useAccount, usePrepareContractWrite, useContractWrite, useSigner, useNetwork } from 'wagmi'
 import FlowRateInput from '../components/FlowRateInput';
-import { ChainId, constants, ControllerName, getControllerByName, getLogsBySignature, getSuperTokenAddressFromSymbol, waitForGraphSync, waitForTxPromise } from '../helpers';
+import { ChainId, constants, ControllerName, getControllerByName, waitForTxPromise } from '../helpers';
 import { ContractTransaction, ethers } from 'ethers';
 import { AbiCoder } from 'ethers/lib/utils.js';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ function reducer(state: Inputs, update: InputsUpdate) {
 
 type Inputs = {
   auctionType: string,
-  acceptedToken: string, // todo multichain
+  acceptedToken: string,
   reserveRate: string,
   minimumBidFactor: string,
 

@@ -47,7 +47,19 @@ export const constants = {
             {
                 address: "0x5943F705aBb6834Cad767e6E4bB258Bc48D9C947",
                 symbol: "ETHx",
-            }
+            },
+            {
+                address: "0xF2d68898557cCb2Cf4C10c3Ef2B034b2a69DAD00",
+                symbol: "fDAIx",
+            },
+            {
+                address: "0x95697ec24439E3Eb7ba588c7B279b9B369236941",
+                symbol: "fTUSDx",
+            },
+            {
+                address: "0x8aE68021f6170E5a766bE613cEA0d75236ECCa9a",
+                symbol: "fUSDCx",
+            },
         ]
     },
     auctionTypesReadable,
@@ -203,16 +215,6 @@ export function getSymbolOfSuperToken(network: ChainId, address: string): string
     return "";
 }
 
-export function getSuperTokenAddressFromSymbol(network: ChainId, symbol: string) {
-    // todo multichain
-    for (let i = 0; i < constants.superTokens[network].length; i++) {
-      if (constants.superTokens[network][i].symbol === symbol) {
-        return constants.superTokens[network][i].address;
-      }
-    }
-
-    throw new Error("invalid supertoken symbol");
-  }
 
 export async function hackLensImage(newHandle: string) {
     const svgText = await fetch(base64Lens).then((x) => x.text());
@@ -292,9 +294,12 @@ export async function addMetadataToGenericRentalAuctions(rentalAuctions: Generic
 }
 
 
-export function makeOpenSeaLink(address: string, tokenId: number) {
-    // todo other networks
-    return `https://testnets.opensea.io/assets/mumbai/${address}/${tokenId}`;
+export function makeOpenSeaLink(address: string, tokenId: number, chainId: ChainId) {
+    let base = "https://opensea.io/assets/";
+    if ([5, 80001].includes(chainId)) {
+        base = "https://testnets.opensea.io/assets/";
+    }
+    return base + address + "/" + tokenId;
 }
 
 export function waitForGraphSync(minBlock: number, chainId: ChainId) {

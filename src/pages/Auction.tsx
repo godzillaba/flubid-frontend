@@ -31,8 +31,6 @@ export default function Auction() {
 
     const [refetchCounter, setRefetchCounter] = React.useState(0);
 
-    // todo: somehow deal with incorrect network on auction page
-
     const [genericRentalAuction, setGenericRentalAuction] = React.useState<GenericRentalAuctionWithMetadata>();
     const [continuousRentalAuction, setContinuousRentalAuction] = React.useState<ContinuousRentalAuction>();
     const [englishRentalAuction, setEnglishRentalAuction] = React.useState<EnglishRentalAuction>();
@@ -88,7 +86,7 @@ export default function Auction() {
         catch (e) {
             console.error(e);
         }
-    }, [auctionAddress, chainId, refetchCounter, address]); // todo chain change
+    }, [auctionAddress, chainId, refetchCounter, address]);
 
     const fetchTokenBalancesAndSymbols = React.useCallback(async () => {
         if (!superToken || !address || !chain) return;

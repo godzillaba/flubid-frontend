@@ -92,7 +92,7 @@ function App() {
           <MyContext.Provider value={{ setTransactionAlertStatus: handleTransactionAlertChange }}>
             <TransactionAlert status={transactionAlertStatus}/>
             {
-              isConnected && chain && isChainSupported(chain.id) ?  // todo multichain
+              isConnected && chain && isChainSupported(chain.id) ? 
                 <Routes>
                   <Route path="/" element={<Explore/>}/>
                   <Route path="/my-auctions" element={<MyAuctions/>}/>
