@@ -43,7 +43,7 @@ export default function Explore() {
 
   useEffect(() => {
     setAuctions([]);
-    sdk.RentalAuctions().then((result) => {
+    sdk.ExploreRentalAuctions().then((result) => {
       setAuctions(result.genericRentalAuctions);
     }).catch((err) => {
       console.error(err);

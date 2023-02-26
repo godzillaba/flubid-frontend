@@ -18,7 +18,7 @@
 
 # todo: we don't need all this info
 query ExploreRentalAuctions {
-  genericRentalAuctions {
+  genericRentalAuctions(orderBy: lastInteractionTimestamp, orderDirection: desc) {
     acceptedToken
     address
     beneficiary
@@ -41,6 +41,7 @@ query ExploreRentalAuctions {
     topBid
     type
     paused
+    lastInteractionTimestamp
   }
 }
 
@@ -69,6 +70,7 @@ query RentalAuctions($where: GenericRentalAuction_filter) {
     topBid
     type
     paused
+    lastInteractionTimestamp
   }
 }
 
@@ -95,6 +97,7 @@ query ERC721ControllerObserversByOwner($owner: Bytes!) {
       topBid
       type
       paused
+      lastInteractionTimestamp
     }
   }
 }
@@ -123,6 +126,7 @@ query RentalAuctionByAddress($address: Bytes!) {
     topBid
     type
     paused
+    lastInteractionTimestamp
   }
 }
 
