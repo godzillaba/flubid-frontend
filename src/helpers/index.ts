@@ -99,7 +99,9 @@ export const constants = {
         80001: "mumbai",
         5: "goerli",
     },
-    transactionAlertTimeout: 5000
+    transactionAlertTimeout: 5000,
+    ipfsGateway: "https://cloudflare-ipfs.com/ipfs/{CID}",
+    docsUrl: "https://flubid.gitbook.io/docs/"
 } as const;
 
 export type ChainId = typeof constants.chains[number]["id"];
@@ -225,7 +227,11 @@ export async function hackLensImage(newHandle: string) {
 }
 
 export function fixIpfsUri(uri: string): string {
-    return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+    if (!uri.startsWith("ipfs://")) {
+        return uri;
+    }
+    const cid = uri.replace("ipfs://", "");
+    return constants.ipfsGateway.replace("{CID}", cid);
 }
 
 export async function getImageFromAuctionItem(auctionItem: GenericRentalAuctionWithMetadata): Promise<string> {

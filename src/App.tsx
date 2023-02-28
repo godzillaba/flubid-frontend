@@ -52,20 +52,7 @@ export const MyContext = React.createContext({
 });
 
 function App() {
-
-  // const useStyles = makeStyles((theme) => ({
-  //   root: {
-  //     flexGrow: 1,
-  //   },
-  //   menuButton: {
-  //     marginRight: theme.spacing(2),
-  //   },
-  //   title: {
-  //     flexGrow: 1,
-  //   },
-  // }));
-
-  // const classes = useStyles();
+  document.title = 'FluBid';
 
   const { isConnected } = useAccount();
   const { chain, chains } = useNetwork();

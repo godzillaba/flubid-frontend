@@ -37,12 +37,12 @@ import { useNetwork } from 'wagmi';
 export default function Explore() {
   const {chain} = useNetwork();
   const chainId = chain!.id as ChainId;
-  const [auctions, setAuctions] = React.useState<GenericRentalAuction[]>([]);
+  const [auctions, setAuctions] = React.useState<GenericRentalAuction[]>();
 
   const sdk = getGraphSDK(chainId);
 
   useEffect(() => {
-    setAuctions([]);
+    setAuctions(undefined);
     sdk.ExploreRentalAuctions().then((result) => {
       setAuctions(result.genericRentalAuctions);
     }).catch((err) => {
@@ -50,12 +50,12 @@ export default function Explore() {
     });
   }, [chainId]);
 
-  if (!auctions.length) return <PageSpinner />
+  if (!auctions) return <PageSpinner />
 
   return (
     <>
       <h1 style={{ display: 'flex', justifyContent: 'center' }}>Explore Auctions</h1>
-      <AuctionsList genericRentalAuctions={auctions}/>
+      {auctions.length === 0 ? <h2 style={{ display: 'flex', justifyContent: 'center' }}>No Auctions Found</h2> : <AuctionsList genericRentalAuctions={auctions}/>}
     </>
   );
 }

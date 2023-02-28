@@ -9,7 +9,7 @@ export default function MyAuctions() {
   const { address } = useAccount();
   const { chain } = useNetwork();
   const chainId = chain!.id as ChainId;
-  const [auctions, setAuctions] = React.useState<GenericRentalAuction[]>([]);
+  const [auctions, setAuctions] = React.useState<GenericRentalAuction[]>();
 
   const fetchMyAuctions = React.useCallback(async () => {
     if (!address) return;
@@ -19,7 +19,7 @@ export default function MyAuctions() {
     const controllersResult = await graphSdk.ERC721ControllerObserversByOwner({ owner: address });
 
     setAuctions(convertControllersQueryToGenericRentalAuctions(controllersResult));
-  }, [address]);
+  }, [address, chainId]);
 
   React.useEffect(() => {
     fetchMyAuctions();

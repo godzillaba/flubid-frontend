@@ -12,14 +12,15 @@ import ExploreAuctionInfoCard from '../components/ExploreAuctionItemCard';
 import { ExecutionResult } from 'graphql';
 
 type AuctionsListProps = {
-    genericRentalAuctions: GenericRentalAuction[]
+    genericRentalAuctions: GenericRentalAuction[] | undefined
 }
 
 export default function AuctionsList(props: AuctionsListProps) {
   
-  const [auctionItems, setAuctionItems] = React.useState<GenericRentalAuctionWithMetadata[]>([]);
+  const [auctionItems, setAuctionItems] = React.useState<GenericRentalAuctionWithMetadata[]>();
 
   useEffect(() => {
+    if (!props.genericRentalAuctions) return;
     addMetadataToGenericRentalAuctions(props.genericRentalAuctions).then(items => {
       setAuctionItems(items);
     })
@@ -27,7 +28,9 @@ export default function AuctionsList(props: AuctionsListProps) {
 
   const theme = useTheme();
 
-  if (auctionItems.length == 0) return <PageSpinner />
+  if (!auctionItems) return <PageSpinner />;
+
+  if (auctionItems.length === 0) return <h2 style={{ display: 'flex', justifyContent: 'center' }}>No Auctions Found</h2>;
 
   return (
     <>
