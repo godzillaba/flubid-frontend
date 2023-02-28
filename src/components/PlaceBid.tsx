@@ -35,7 +35,7 @@ export default function PlaceBid(props: PlaceBidProps) {
                 <h2 style={{ marginTop: 0 }}>{title}</h2>
                 <p>{config.underlyingTokenSymbol} Balance: {parseInt(config.underlyingTokenBalance.toString())/1e18}</p>
                 <p>{config.superTokenSymbol} Balance: {parseInt(config.superTokenBalance.toString())/1e18}</p>
-                <FlowRateInput displayCurrency="DAI" onChange={config.onUserFlowRateChange}/>
+                <FlowRateInput displayCurrency={config.underlyingTokenSymbol} onChange={config.onUserFlowRateChange}/>
                 <br />
                 <Button fullWidth variant="outlined" color="success" onClick={config.onBidClick}>
                     {title}

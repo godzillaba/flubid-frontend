@@ -64,6 +64,10 @@ export default function ManageAuction() {
             englishRentalAuction = result.englishRentalAuctions[0];
         }
 
+        setImage(image);
+        setGenericRentalAuction(auction);
+        setEnglishRentalAuction(englishRentalAuction);
+
         try {
             const tokenContract = new ethers.Contract(auction.controllerObserver.underlyingTokenContract, constants.abis.IERC721Metadata, provider);
             const currentOwner = await tokenContract.ownerOf(auction.controllerObserver.underlyingTokenID);
@@ -79,10 +83,6 @@ export default function ManageAuction() {
             console.error(e);
             console.log('failed to fetch token info')
         }
-
-        setImage(image);
-        setGenericRentalAuction(auction);
-        setEnglishRentalAuction(englishRentalAuction)
     }, [auctionAddress]);
 
     React.useEffect(() => {

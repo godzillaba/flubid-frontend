@@ -68,18 +68,18 @@ export const constants = {
     },
     factories: {
         80001: { // mumbai
-            continuousRentalAuctionFactory: '0xaB0d45639Bc816ff79A02B73a81bb6fc1d6678A1',
-            englishRentalAuctionFactory: '0xD3345F3924789Da02645607C9B07f68836292361',
+            continuousRentalAuctionFactory: '0xc5B94b533cd07ae93B4d1B9c3f9347B48696FCc6',
+            englishRentalAuctionFactory: '0x378847436D018985b9208103f0812ADe012dA68b',
         },
         5: { // goerli
-            continuousRentalAuctionFactory: '0x041F369897Af6bFFf9d96F056756c11efd512557',
-            englishRentalAuctionFactory: '0xdeb68b4Cad98FB5a507a8480fE095D69F0558096',
+            continuousRentalAuctionFactory: '0x39CF2634775a20742E52b371316498e153100EEE',
+            englishRentalAuctionFactory: '0xC846345198E94f3389048d9Fc32412C4a2D1DE91',
         }
     },
     controllerTypes: [
         {
             name: "Lens Protocol",
-            implementation: "0x0248c352B1295086c3805B2f2eb22833F317f007",
+            implementation: "0x249c6D171dE33d1239Af3c3BD23AD7D75b2B1198",
             parameters: [
                 { name: "Lens Hub", type: "address" },
                 { name: "Lens Profile ID", type: "uint256" },
@@ -87,10 +87,18 @@ export const constants = {
         },
         {
             name: "ERC4907 Token",
-            implementation: "0xaB9C46b4d0767Cb3733912dB28968317DbB97474",
+            implementation: "0xA9D61923b9e054fe3353596eFD4DFe743F4b28C5",
             parameters: [
                 { name: "ERC4907 Address", type: "address" },
                 { name: "ERC4907 Token ID", type: "uint256" },
+            ]
+        },
+        {
+            name: "ERC721 Token - delegate.cash",
+            implementation: "0x558c268716A1067Cc47291CcC197b1401f87d13C",
+            parameters: [
+                { name: "ERC721 Address", type: "address" },
+                { name: "ERC721 Token ID", type: "uint256" },
             ]
         }
     ],
@@ -209,7 +217,7 @@ export function getLogsByTopic0(logs: ethers.providers.Log[], topic0: string) {
 
 export function getSymbolOfSuperToken(network: ChainId, address: string): string {
     for (let i = 0; i < constants.superTokens[network].length; i++) {
-        if (cmpAddr(constants.superTokens[network][i].address, address.toLowerCase())) {
+        if (cmpAddr(constants.superTokens[network][i].address, address)) {
             return constants.superTokens[network][i].symbol;
         }
     }
@@ -235,16 +243,22 @@ export function fixIpfsUri(uri: string): string {
 }
 
 export async function getImageFromAuctionItem(auctionItem: GenericRentalAuctionWithMetadata): Promise<string> {
-    if (cmpAddr(auctionItem.controllerObserverImplementation, getControllerByName("Lens Protocol").implementation)) {
-        // HACK
-        // use template lens image and replace handle. for some reason profile images returned from lensHub look weird
-        return hackLensImage(auctionItem.metadata.name);
-    } else {
-        if (typeof auctionItem.metadata.image === "string") {
-            return auctionItem.metadata.image;
+    try {
+        if (cmpAddr(auctionItem.controllerObserverImplementation, getControllerByName("Lens Protocol").implementation)) {
+            // HACK
+            // use template lens image and replace handle. for some reason profile images returned from lensHub look weird
+            return hackLensImage(auctionItem.metadata.name);
         } else {
-            return auctionItem.metadata.properties.image.description;
+            if (typeof auctionItem.metadata.image === "string") {
+                return auctionItem.metadata.image;
+            } else {
+                return auctionItem.metadata.properties.image.description;
+            }
         }
+    }
+    catch (e) {
+        console.error(e);
+        return "e";
     }
 }
 
